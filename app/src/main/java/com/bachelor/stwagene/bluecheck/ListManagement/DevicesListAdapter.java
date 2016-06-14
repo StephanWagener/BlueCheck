@@ -1,4 +1,4 @@
-package com.bachelor.stwagene.bluecheck.ListAdapter;
+package com.bachelor.stwagene.bluecheck.ListManagement;
 
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -60,7 +60,7 @@ public class DevicesListAdapter extends ArrayAdapter<BleDevice>
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP)
                 {
-                    layout.setBackground(activity.getResources().getDrawable(R.drawable.rounded_box));
+                    layout.setBackground(activity.getResources().getDrawable(R.drawable.rounded_stroked_box));
                     activity.performDeviceListItemClick((int) layout.getTag());
                     return true;
                 }

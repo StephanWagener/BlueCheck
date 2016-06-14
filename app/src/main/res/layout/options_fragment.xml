@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:clickable="true"
+                android:id="@+id/options_layout"
+                android:background="@color/transparent_black"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <LinearLayout
+        android:elevation="20dp"
+        android:orientation="vertical"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/rounded_white_background"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:padding="10dp"
+            android:gravity="center"
+            android:text="Optionen"
+            android:textSize="22sp"
+            android:textColor="@android:color/black"
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"/>
+
+        <ListView
+            android:padding="10dp"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:divider="@color/colorPrimary"
+            android:dividerHeight="1dp"
+            android:id="@+id/options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

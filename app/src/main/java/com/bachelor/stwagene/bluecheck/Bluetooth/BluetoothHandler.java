@@ -2,9 +2,9 @@ package com.bachelor.stwagene.bluecheck.Bluetooth;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 
-import com.bachelor.stwagene.bluecheck.Fragments.ShowProgressFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 
 /**
@@ -22,32 +22,61 @@ public class BluetoothHandler extends Handler
         this.activity = mainActivity;
     }
 
-    @Override
-    public void handleMessage(final Message msg)
+    public void openDeviceValuesList()
     {
         this.post(new Runnable()
         {
             @Override
             public void run()
             {
-                String value = (String) msg.getData().get("VALUE");
-                try
+                ProgressFragment fragment = (ProgressFragment) activity.getSupportFragmentManager().findFragmentByTag("ProgressFragment");
+                if (fragment != null)
                 {
-                    double doubleValue = Double.parseDouble(value);
-                    ShowProgressFragment progressFragment = (ShowProgressFragment) activity.getSupportFragmentManager().findFragmentByTag("ShowProgressFragment");
-                    if (progressFragment != null)
-                    {
-                        progressFragment.close();
-                    }
-                    activity.setValue(doubleValue);
+                    fragment.close();
                 }
-                catch (Exception ex)
+
+                DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
+                if (deviceValueFragment == null)
                 {
-                    activity.writeToLog("Error beim Setzen des Wertes des DeviceValueFragments.");
-                    ex.printStackTrace();
+                    activity.openFragment(new DeviceValuesListFragment(), "DeviceValuesListFragment");
                 }
             }
         });
-        super.handleMessage(msg);
+    }
+
+    public void refreshProgressFragment(final String message)
+    {
+        this.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                activity.refreshLoadFragment(message);
+            }
+        });
+    }
+
+    public void setRssiPercentageValue(final int rssiValue)
+    {
+        this.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                activity.setRssiPercentageValue(rssiValue);
+            }
+        });
+    }
+
+    public void writeToLog(final String s)
+    {
+        this.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                activity.writeToLog(s);
+            }
+        });
     }
 }

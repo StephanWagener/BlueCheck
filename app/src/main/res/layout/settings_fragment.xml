@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:clickable="true"
+              android:background="@android:color/white"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ScrollView
+        android:padding="10dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/developer_settings"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:padding="10dp"
+                    android:textSize="20sp"
+                    android:textColor="@android:color/black"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Entwickler-Einstellungen"/>
+
+                <LinearLayout
+                    android:background="@color/colorPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"/>
+
+                <CheckBox
+                    android:textSize="18sp"
+                    android:id="@+id/show_UUID"
+                    android:text="UUID anzeigen"
+                    android:padding="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <CheckBox
+                    android:textSize="18sp"
+                    android:id="@+id/show_text"
+                    android:text="Klartext anzeigen"
+                    android:padding="10dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:layout_margin="10dp"
+                    android:text="Jeder wie vielte Wert, der sich geändert hat soll angezeigt werden ?"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:gravity="center"
+                    android:weightSum="2"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/value_changed_interval_text"
+                        android:gravity="center"
+                        android:layout_margin="10dp"
+                        android:text="Jeder "
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp"
+                        android:layout_weight="1"
+                        android:layout_width="0dip"
+                        android:layout_height="wrap_content"/>
+
+                    <Button
+                        android:id="@+id/change_show_value_changed_interval"
+                        android:textSize="18sp"
+                        android:textAllCaps="false"
+                        android:text="Ändern"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_weight="1"
+                        android:layout_width="0dip"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:padding="10dp"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Allgemeine Einstellungen"/>
+
+            <LinearLayout
+                android:background="@color/colorPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

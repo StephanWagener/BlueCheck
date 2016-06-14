@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.R;
 
 /**
@@ -16,11 +17,11 @@ import com.bachelor.stwagene.bluecheck.R;
  *
  * Created by stwagene on 02.05.2016.
  */
-public class ShowProgressFragment extends Fragment
+public class ProgressFragment extends Fragment
 {
     private TextView progressText;
 
-    public ShowProgressFragment() {}
+    public ProgressFragment() {}
 
     @Nullable
     @Override
@@ -62,5 +63,6 @@ public class ShowProgressFragment extends Fragment
         ft.remove(this);
         ft.commit();
         getActivity().getSupportFragmentManager().popBackStack();
+        ((MainActivity) getActivity()).setBackButtonGone();
     }
 }

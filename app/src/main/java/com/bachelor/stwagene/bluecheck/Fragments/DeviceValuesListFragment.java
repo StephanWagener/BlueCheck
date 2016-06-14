@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 
-import com.bachelor.stwagene.bluecheck.ListAdapter.FirstExpandableDeviceValuesListAdapter;
+import com.bachelor.stwagene.bluecheck.ListManagement.FirstExpandableDeviceValuesListAdapter;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.TISensorTagData;
 import com.bachelor.stwagene.bluecheck.R;
@@ -18,6 +18,7 @@ import com.bachelor.stwagene.bluecheck.R;
  */
 public class DeviceValuesListFragment extends Fragment
 {
+
     public DeviceValuesListFragment () {}
 
     @Nullable

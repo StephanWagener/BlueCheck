@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:background="@android:color/white"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_centerVertical="true"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="40dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:textSize="20sp"
+            android:id="@+id/device_value_name"
+            android:textColor="@android:color/black"
+            android:text="Name"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:weightSum="5"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:text="UUID:"
+                android:gravity="center_vertical"
+                android:layout_width="0dip"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:textSize="16sp"
+                android:id="@+id/device_value_UUID"
+                android:textColor="@android:color/darker_gray"
+                android:text="UUID"
+                android:layout_width="0dip"
+                android:layout_weight="4"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_marginEnd="10dp"
+        android:id="@+id/arrow"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/ic_keyboard_arrow_down_black_36dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"/>
+
+</RelativeLayout>

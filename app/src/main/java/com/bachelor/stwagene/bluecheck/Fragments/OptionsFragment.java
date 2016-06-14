@@ -11,7 +11,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.bachelor.stwagene.bluecheck.ListAdapter.OptionsListAdapter;
+import com.bachelor.stwagene.bluecheck.ListManagement.OptionsListAdapter;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.Option;
 import com.bachelor.stwagene.bluecheck.Model.OptionType;
@@ -24,17 +24,19 @@ import java.util.ArrayList;
  */
 public class OptionsFragment extends Fragment
 {
+    private OptionsListAdapter adapter;
+
     public OptionsFragment() {}
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        View view = inflater.inflate(R.layout.menu, container, false);
+        View view = inflater.inflate(R.layout.options_fragment, container, false);
 
         ListView list = (ListView) view.findViewById(R.id.options);
 
-        final OptionsListAdapter adapter = new OptionsListAdapter((MainActivity) getActivity(), R.layout.option_list_item, getOptionsList());
+        adapter = new OptionsListAdapter((MainActivity) getActivity(), R.layout.option_list_item, getOptionsList());
         list.setAdapter(adapter);
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -54,6 +56,10 @@ public class OptionsFragment extends Fragment
                     LogFragment logFragment = new LogFragment();
                     logFragment.setArguments(args);
                     ((MainActivity) getActivity()).openFragment(logFragment, "LogFragment");
+                }
+                else if (currentType.equals(OptionType.SETTINGS))
+                {
+                    ((MainActivity) getActivity()).openFragment(new SettingsFragment(), "SettingsFragment");
                 }
                 else
                 {
@@ -79,9 +85,19 @@ public class OptionsFragment extends Fragment
     {
         ArrayList<Option> optionsList = new ArrayList<>();
         optionsList.add(new Option("Einstellungen", R.drawable.ic_settings_black_36dp, OptionType.SETTINGS));
-        optionsList.add(new Option("Log-Ansicht", R.drawable.ic_description_black_36dp, OptionType.LOG));
+        if (((MainActivity) getActivity()).isDeveloperMode())
+        {
+            optionsList.add(new Option("Log-Ansicht", R.drawable.ic_description_black_36dp, OptionType.LOG));
+        }
         optionsList.add(new Option("Zurücksetzen", R.drawable.ic_restore_black_36dp, OptionType.RESET));
         optionsList.add(new Option("Beenden", R.drawable.ic_close_black_36dp, OptionType.EXIT));
         return optionsList;
+    }
+
+    public void setDeveloperMode()
+    {
+        adapter.clear();
+        adapter.addAll(getOptionsList());
+        adapter.notifyDataSetChanged();
     }
 }

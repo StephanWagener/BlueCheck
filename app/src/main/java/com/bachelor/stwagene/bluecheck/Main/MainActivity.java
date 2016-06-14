@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -25,18 +26,19 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothCallback;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
 import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionManager;
-import com.bachelor.stwagene.bluecheck.Fragments.DeviceValueFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.LogFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.OptionsFragment;
-import com.bachelor.stwagene.bluecheck.Fragments.ShowProgressFragment;
-import com.bachelor.stwagene.bluecheck.ListAdapter.DevicesListAdapter;
+import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
+import com.bachelor.stwagene.bluecheck.ListManagement.DevicesListAdapter;
 import com.bachelor.stwagene.bluecheck.Model.BleDevice;
-import com.bachelor.stwagene.bluecheck.Model.TISensorTagData;
+import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
 import com.bachelor.stwagene.bluecheck.R;
 
 import java.util.ArrayList;
@@ -62,10 +64,13 @@ public class MainActivity extends AppCompatActivity
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
     public BluetoothHandler handler = new BluetoothHandler(this);
     private BluetoothGatt mGatt;
-    private ListView devicesList;
     private boolean isBleScanning = false;
     private Button scanTwo;
-    private int currentDevice;
+    private TextView rssiPercentageTextView;
+    private boolean isShowUUIDInLog = true;
+    private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
+    private ImageView backButton;
+    private int developerModeCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -75,11 +80,13 @@ public class MainActivity extends AppCompatActivity
 
         buttonBar = (LinearLayout) findViewById(R.id.button_bar_scans);
 
+        checkBluetoothOfDevice();
+
         writeToLog("BlueCheck wurde gestartet.");
 
         initActionBar();
 
-        initMenu();
+        initToolbar();
 
         initButtonScans();
 
@@ -145,8 +152,42 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void initMenu()
+    private void initToolbar()
     {
+        TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.title);
+        title.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                MainActivity.this.developerModeCounter++;
+                if (developerModeCounter == 6)
+                {
+                    Toast.makeText(getApplicationContext(), "Sie sind jetzt im Entwicklermodus.", Toast.LENGTH_SHORT).show();
+                    SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag("SettingsFragment");
+                    if (fragment != null)
+                    {
+                        fragment.setDeveloperMode();
+                    }
+                    OptionsFragment optionsFragment = (OptionsFragment) getSupportFragmentManager().findFragmentByTag("OptionsFragment");
+                    if (optionsFragment != null)
+                    {
+                        optionsFragment.setDeveloperMode();
+                    }
+                }
+            }
+        });
+
+        backButton = (ImageView) getSupportActionBar().getCustomView().findViewById(R.id.back_icon);
+        backButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                onBackPressed();
+            }
+        });
+
         ImageView menu = (ImageView) getSupportActionBar().getCustomView().findViewById(R.id.menu_icon);
         menu.setOnClickListener(new View.OnClickListener()
         {
@@ -166,6 +207,8 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
+        rssiPercentageTextView = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.connection_rssi_percentage);
     }
 
     private void initButtonScans()
@@ -190,11 +233,11 @@ public class MainActivity extends AppCompatActivity
                     }
                     else
                     {
-                        ShowProgressFragment fragment = new ShowProgressFragment();
+                        ProgressFragment fragment = new ProgressFragment();
                         Bundle bundle = new Bundle();
                         bundle.putString("PROGRESS", "Scanne nach Geräten...");
                         fragment.setArguments(bundle);
-                        openFragment(fragment, "ShowProgressFragment");
+                        openFragment(fragment, "ProgressFragment");
                         deviceListAdapter.clear();
                         deviceListAdapter.notifyDataSetChanged();
                         startBleScan();
@@ -225,7 +268,7 @@ public class MainActivity extends AppCompatActivity
 
     private void initDeviceList()
     {
-        devicesList = (ListView) findViewById(R.id.ble_device_list);
+        ListView devicesList = (ListView) findViewById(R.id.ble_device_list);
         deviceListAdapter = new DevicesListAdapter(this, R.layout.device_list_item, new ArrayList<BleDevice>());
 
         if (devicesList != null)
@@ -238,18 +281,31 @@ public class MainActivity extends AppCompatActivity
     {
         connectToDevice(deviceListAdapter.getItem(position).getDevice());
         writeToLog(deviceListAdapter.getItem(position).getName() + " wurde ausgewählt.");
-        setCurrentDevice(position);
-        ShowProgressFragment fragment = new ShowProgressFragment();
+        ProgressFragment fragment = new ProgressFragment();
         Bundle bundle = new Bundle();
         bundle.putString("PROGRESS", "Verbinde...");
         fragment.setArguments(bundle);
-        openFragment(fragment, "ShowProgressFragment");
+        openFragment(fragment, "ProgressFragment");
+        handler.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+                List<BluetoothDevice> devices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
+                if (devices.size() == 0)
+                {
+                    closeProgressFragment();
+                    Toast.makeText(getApplicationContext(), "Verbindung unterbrochen.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }, 5000);
     }
 
     public void connectToDevice(BluetoothDevice device)
     {
         writeToLog("Starte Verbindung zu " + device.getName());
-        mGatt = device.connectGatt(this, false, new BluetoothCallback(new TISensorTagData(), this));
+        mGatt = device.connectGatt(this, false, new BluetoothCallback(this));
     }
 
     public void openFragment(Fragment fragment, String name)
@@ -259,12 +315,14 @@ public class MainActivity extends AppCompatActivity
         ft.add(R.id.activity_layout, fragment, name);
         ft.addToBackStack(name);
         ft.commit();
+
+        backButton.setVisibility(View.VISIBLE);
         isClose = false;
         if (name.equals("LogFragment"))
         {
             buttonBar.setVisibility(View.GONE);
         }
-        if (name.equals("OptionsFragment") || name.equals("ShowProgressFragment"))
+        if (name.equals("OptionsFragment") || name.equals("ProgressFragment"))
         {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
@@ -334,6 +392,7 @@ public class MainActivity extends AppCompatActivity
         writeToLog("BackButton wurde gedrückt.");
         if (getSupportFragmentManager().getBackStackEntryCount() == 0)
         {
+            backButton.setVisibility(View.GONE);
             if (!isClose)
             {
                 isClose = true;
@@ -345,43 +404,48 @@ public class MainActivity extends AppCompatActivity
             }
             buttonBar.setVisibility(View.VISIBLE);
         }
-        String lastFragmentName = getSupportFragmentManager().getBackStackEntryAt(getSupportFragmentManager().getBackStackEntryCount()-1).getName();
-        if (lastFragmentName.equals("ShowProgressFragment"))
+        else
         {
-            if (this.isBleScanning || mBluetoothAdapter.isDiscovering())
+            String lastFragmentName = getSupportFragmentManager().getBackStackEntryAt(getSupportFragmentManager().getBackStackEntryCount()-1).getName();
+            if (lastFragmentName.equals("ProgressFragment"))
             {
-                stopBleScan();
+                if (this.isBleScanning || mBluetoothAdapter.isDiscovering())
+                {
+                    stopBleScan();
+                }
+                else if (mGatt != null)
+                {
+                    mGatt.disconnect();
+                    mGatt.close();
+                }
+                buttonBar.setVisibility(View.VISIBLE);
             }
-            else if (mGatt != null)
+            if (lastFragmentName.equals("OptionsFragment"))
             {
-                mGatt.disconnect();
-                mGatt.close();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                {
+                    buttonBar.setElevation(30);
+                }
             }
-            buttonBar.setVisibility(View.VISIBLE);
-        }
-        if (lastFragmentName.equals("OptionsFragment"))
-        {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            if (lastFragmentName.equals("DeviceValuesListFragment"))
             {
-                buttonBar.setElevation(30);
+                if (mGatt != null)
+                {
+                    mGatt.disconnect();
+                    mGatt.close();
+                }
+                this.rssiPercentageTextView.setVisibility(View.GONE);
             }
-        }
-        if (lastFragmentName.equals("DeviceValueFragment"))
-        {
-            if (mGatt != null)
+            if (getSupportFragmentManager().getBackStackEntryCount() == 1)
             {
-                mGatt.disconnect();
-                mGatt.close();
+                backButton.setVisibility(View.GONE);
+                buttonBar.setVisibility(View.VISIBLE);
+                super.onBackPressed();
             }
-        }
-        if (getSupportFragmentManager().getBackStackEntryCount() == 1)
-        {
-            buttonBar.setVisibility(View.VISIBLE);
-            super.onBackPressed();
-        }
-        if (getSupportFragmentManager().getBackStackEntryCount() > 1)
-        {
-            super.onBackPressed();
+            if (getSupportFragmentManager().getBackStackEntryCount() > 1)
+            {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -397,7 +461,6 @@ public class MainActivity extends AppCompatActivity
         else
         {
             writeToLog("Scanne nach Geräten...");
-            Toast.makeText(getApplicationContext(), "Scanne nach Geräten...", Toast.LENGTH_SHORT).show();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
                 bleScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
@@ -466,9 +529,9 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void refreshLoadFragment(String s)
+    public void refreshLoadFragment(String s)
     {
-        ShowProgressFragment fragment = (ShowProgressFragment) getSupportFragmentManager().findFragmentByTag("ShowProgressFragment");
+        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag("ProgressFragment");
         if (fragment != null)
         {
             fragment.changeProgressText(s);
@@ -481,7 +544,6 @@ public class MainActivity extends AppCompatActivity
         writeToLog("Scan 1 ist abgeschlossen.");
         isScanOneFinished = true;
         scanTwo.setTextColor(getResources().getColor(android.R.color.white));
-        Toast.makeText(getApplicationContext(), "Scan 1 ist abgeschlossen.", Toast.LENGTH_SHORT).show();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             bleScanner.stopScan(bleCallback);
@@ -496,7 +558,7 @@ public class MainActivity extends AppCompatActivity
 
     private void closeProgressFragment()
     {
-        ShowProgressFragment fragment = (ShowProgressFragment) getSupportFragmentManager().findFragmentByTag("ShowProgressFragment");
+        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag("ProgressFragment");
         if (fragment != null)
         {
             fragment.close();
@@ -512,11 +574,10 @@ public class MainActivity extends AppCompatActivity
         deviceListAdapter.add(bleDevice);
         deviceListAdapter.notifyDataSetChanged();
         writeToLog("Gerät (" + bleDevice.getName() + ") gefunden.");
-        Toast.makeText(getApplicationContext(), "Gerät (" + bleDevice.getName() + ") gefunden.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    protected void onDestroy()
+    protected void onStop()
     {
         if (mGatt != null)
         {
@@ -537,32 +598,7 @@ public class MainActivity extends AppCompatActivity
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
             }
         }
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onResume()
-    {
-        checkBluetoothOfDevice();
-        super.onResume();
-    }
-
-    public void setValue(double value)
-    {
-        DeviceValueFragment devceValueFragment = (DeviceValueFragment) getSupportFragmentManager().findFragmentByTag("DeviceValueFragment");
-        if (devceValueFragment == null)
-        {
-            DeviceValueFragment fragment = new DeviceValueFragment();
-            Bundle bundle = new Bundle();
-            bundle.putDouble("VALUE", value);
-            bundle.putString("NAME", deviceListAdapter.getItem(getCurrentDevice()).getName());
-            fragment.setArguments(bundle);
-            openFragment(fragment, "DeviceValueFragment");
-        }
-        else
-        {
-            devceValueFragment.setValue(value);
-        }
+        super.onStop();
     }
 
     public void sendData(String deviceValue)
@@ -604,18 +640,68 @@ public class MainActivity extends AppCompatActivity
         return cm.getActiveNetworkInfo() != null;
     }
 
+    public void deleteLogText()
+    {
+        this.logTexts = new ArrayList<>();
+    }
+
     public ArrayList<String> getLogTexts()
     {
         return this.logTexts;
     }
 
-    public void setCurrentDevice(int currentDevice)
+    public void setRssiPercentageValue(int rssiValue)
     {
-        this.currentDevice = currentDevice;
+        this.rssiPercentageTextView.setVisibility(View.VISIBLE);
+        if (rssiValue < -100)
+        {
+            this.rssiPercentageTextView.setText(1+"%");
+        }
+        else if (rssiValue > -25)
+        {
+            this.rssiPercentageTextView.setText(100+"%");
+        }
+        else
+        {
+            this.rssiPercentageTextView.setText(String.format("%.1f", ((double)rssiValue+100.0)/75.0*100.0)+"%");
+        }
     }
 
-    public int getCurrentDevice()
+    public boolean isShowUUIDInLog()
     {
-        return currentDevice;
+        return isShowUUIDInLog;
+    }
+
+    public void setShowUUIDInLog(boolean showUUIDInLog)
+    {
+        isShowUUIDInLog = showUUIDInLog;
+    }
+
+    public void setValueChangedInterval(ChooserListItem valueChangedInterval)
+    {
+        SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag("SettingsFragment");
+        if (fragment != null)
+        {
+            fragment.setValueChangedInterval(valueChangedInterval);
+        }
+        this.valueChangedInterval = valueChangedInterval;
+    }
+
+    public ChooserListItem getValueChangedInterval()
+    {
+        return valueChangedInterval;
+    }
+
+    public boolean isDeveloperMode()
+    {
+        return developerModeCounter >= 6;
+    }
+
+    public void setBackButtonGone()
+    {
+        if (getSupportFragmentManager().getBackStackEntryCount() <= 1)
+        {
+            backButton.setVisibility(View.GONE);
+        }
     }
 }

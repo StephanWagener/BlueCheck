@@ -10,28 +10,61 @@ import java.util.ArrayList;
 public class TISensorTagData
 {
     public static ArrayList<BluetoothGattService> services = new ArrayList<>();
-    private double lastObjectTemperature = 0;
-    private double lastAmbientTemperature = 0;
+    private static double objectTemperature = 0;
+    private static double ambientTemperature = 0;
+    private static double humidity = 0;
+    private static double pressure = 0;
+    private static double lightIntensity = 0;
 
     public TISensorTagData() {}
 
-    public double getLastObjectTemperature()
+    public static double getObjectTemperature()
     {
-        return lastObjectTemperature;
+        return objectTemperature;
     }
 
-    public void setLastObjectTemperature(double lastObjectTemperature)
+    public static void setObjectTemperature(double objectTemperature)
     {
-        this.lastObjectTemperature = lastObjectTemperature;
+        TISensorTagData.objectTemperature = objectTemperature;
     }
 
-    public double getLastAmbientTemperature()
+    public static double getAmbientTemperature()
     {
-        return lastAmbientTemperature;
+        return ambientTemperature;
     }
 
-    public void setLastAmbientTemperature(double lastAmbientTemperature)
+    public static void setAmbientTemperature(double ambientTemperature)
     {
-        this.lastAmbientTemperature = lastAmbientTemperature;
+        TISensorTagData.ambientTemperature = ambientTemperature;
+    }
+
+    public static double getHumidity()
+    {
+        return humidity;
+    }
+
+    public static void setHumidity(double humidity)
+    {
+        TISensorTagData.humidity = humidity;
+    }
+
+    public static void setPressure(double pressure)
+    {
+        TISensorTagData.pressure = pressure;
+    }
+
+    public static double getPressure()
+    {
+        return pressure;
+    }
+
+    public static double getLightIntensity()
+    {
+        return lightIntensity;
+    }
+
+    public static void setLightIntensity(double lightIntensity)
+    {
+        TISensorTagData.lightIntensity = lightIntensity;
     }
 }

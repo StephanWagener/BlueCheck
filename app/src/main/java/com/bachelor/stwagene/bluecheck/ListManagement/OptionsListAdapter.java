@@ -1,4 +1,4 @@
-package com.bachelor.stwagene.bluecheck.ListAdapter;
+package com.bachelor.stwagene.bluecheck.ListManagement;
 
 import android.view.LayoutInflater;
 import android.view.View;
