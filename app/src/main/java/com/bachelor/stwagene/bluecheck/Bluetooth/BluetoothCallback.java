@@ -209,6 +209,7 @@ public class BluetoothCallback extends BluetoothGattCallback
     {
         gatt.readRemoteRssi();
         setNextCounter(characteristic);
+        activity.handler.refreshDeviceValuesFragment();
         saveNextValue(characteristic, gatt);
     }
 

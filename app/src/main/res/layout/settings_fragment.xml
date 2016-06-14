@@ -110,6 +110,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="2dp"/>
 
+            <CheckBox
+                android:textSize="18sp"
+                android:id="@+id/change_developer_mode"
+                android:text="Entwicklermodus aktivieren"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
         </LinearLayout>
 
     </ScrollView>

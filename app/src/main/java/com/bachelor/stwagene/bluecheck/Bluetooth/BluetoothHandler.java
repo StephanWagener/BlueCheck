@@ -3,6 +3,7 @@ package com.bachelor.stwagene.bluecheck.Bluetooth;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
@@ -35,10 +36,21 @@ public class BluetoothHandler extends Handler
                     fragment.close();
                 }
 
-                DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
-                if (deviceValueFragment == null)
+                if (activity.isDeveloperMode())
                 {
-                    activity.openFragment(new DeviceValuesListFragment(), "DeviceValuesListFragment");
+                    DeviceServicesListFragment deviceServiceFragment = (DeviceServicesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceServicesListFragment");
+                    if (deviceServiceFragment == null)
+                    {
+                        activity.openFragment(new DeviceServicesListFragment(), "DeviceServicesListFragment");
+                    }
+                }
+                else
+                {
+                    DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
+                    if (deviceValueFragment == null)
+                    {
+                        activity.openFragment(new DeviceValuesListFragment(), "DeviceValuesListFragment");
+                    }
                 }
             }
         });
@@ -52,6 +64,22 @@ public class BluetoothHandler extends Handler
             public void run()
             {
                 activity.refreshLoadFragment(message);
+            }
+        });
+    }
+
+    public void refreshDeviceValuesFragment()
+    {
+        this.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
+                if (deviceValueFragment != null)
+                {
+                    deviceValueFragment.refreshData();
+                }
             }
         });
     }

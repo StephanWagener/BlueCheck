@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
     private boolean isShowUUIDInLog = true;
     private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
     private ImageView backButton;
-    private int developerModeCounter = 0;
+    private boolean isDeveloperMode = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -154,30 +154,6 @@ public class MainActivity extends AppCompatActivity
 
     private void initToolbar()
     {
-        TextView title = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.title);
-        title.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                MainActivity.this.developerModeCounter++;
-                if (developerModeCounter == 6)
-                {
-                    Toast.makeText(getApplicationContext(), "Sie sind jetzt im Entwicklermodus.", Toast.LENGTH_SHORT).show();
-                    SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag("SettingsFragment");
-                    if (fragment != null)
-                    {
-                        fragment.setDeveloperMode();
-                    }
-                    OptionsFragment optionsFragment = (OptionsFragment) getSupportFragmentManager().findFragmentByTag("OptionsFragment");
-                    if (optionsFragment != null)
-                    {
-                        optionsFragment.setDeveloperMode();
-                    }
-                }
-            }
-        });
-
         backButton = (ImageView) getSupportActionBar().getCustomView().findViewById(R.id.back_icon);
         backButton.setOnClickListener(new View.OnClickListener()
         {
@@ -286,6 +262,11 @@ public class MainActivity extends AppCompatActivity
         bundle.putString("PROGRESS", "Verbinde...");
         fragment.setArguments(bundle);
         openFragment(fragment, "ProgressFragment");
+        handleConnectionTimeOut();
+    }
+
+    public void handleConnectionTimeOut()
+    {
         handler.postDelayed(new Runnable()
         {
             @Override
@@ -427,7 +408,7 @@ public class MainActivity extends AppCompatActivity
                     buttonBar.setElevation(30);
                 }
             }
-            if (lastFragmentName.equals("DeviceValuesListFragment"))
+            if (lastFragmentName.equals("DeviceValuesListFragment") || lastFragmentName.equals("DeviceServicesListFragment"))
             {
                 if (mGatt != null)
                 {
@@ -694,7 +675,7 @@ public class MainActivity extends AppCompatActivity
 
     public boolean isDeveloperMode()
     {
-        return developerModeCounter >= 6;
+        return isDeveloperMode;
     }
 
     public void setBackButtonGone()
@@ -703,5 +684,10 @@ public class MainActivity extends AppCompatActivity
         {
             backButton.setVisibility(View.GONE);
         }
+    }
+
+    public void setDeveloperMode(boolean isActive)
+    {
+        this.isDeveloperMode = isActive;
     }
 }

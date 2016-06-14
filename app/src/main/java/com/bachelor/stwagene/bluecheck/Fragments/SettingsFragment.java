@@ -87,6 +87,27 @@ public class SettingsFragment extends Fragment
         developerLayout = (LinearLayout) view.findViewById(R.id.developer_settings);
         setDeveloperMode();
 
+        final CheckBox developerMode = (CheckBox) view.findViewById(R.id.change_developer_mode);
+        developerMode.setChecked(((MainActivity)getActivity()).isDeveloperMode());
+        developerMode.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                ((MainActivity)getActivity()).setDeveloperMode(developerMode.isChecked());
+                SettingsFragment fragment = (SettingsFragment) getActivity().getSupportFragmentManager().findFragmentByTag("SettingsFragment");
+                if (fragment != null)
+                {
+                    fragment.setDeveloperMode();
+                }
+                OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag("OptionsFragment");
+                if (optionsFragment != null)
+                {
+                    optionsFragment.setDeveloperMode();
+                }
+            }
+        });
+
         return view;
     }
 

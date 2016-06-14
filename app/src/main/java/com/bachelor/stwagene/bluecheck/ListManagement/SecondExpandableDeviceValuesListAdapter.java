@@ -119,6 +119,7 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
             holder.permissionTextView = (TextView) convertView.findViewById(R.id.device_value_permission);
             holder.valueTextView = (TextView) convertView.findViewById(R.id.device_value_value);
             holder.arrow = (ImageView) convertView.findViewById(R.id.arrow);
+            holder.send = (TextView) convertView.findViewById(R.id.send);
             convertView.setTag(holder);
             secondLevelHolder.add(holder);
         }
@@ -128,9 +129,7 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
         }
 
         holder.nameTextView.setText("Characteristik");
-
         holder.UUIDTextView.setText(currentCharacteristic.getUuid().toString());
-
 
         ArrayList<String> permissions = new ArrayList<>();
         int property = currentCharacteristic.getProperties();
@@ -164,6 +163,7 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
         {
             permissions.add("Keine");
         }
+
         String permission = "";
         for (int i = 0; i < permissions.size(); i++)
         {
@@ -175,10 +175,18 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
         }
         holder.permissionTextView.setText(permission);
 
-
         if (currentCharacteristic.getUuid().toString().equals(TexasInstrumentsUtils.UUID_STRING_CHARACTERISTIC_TEMPERATURE_DATA))
         {
             holder.valueTextView.setText(TISensorTagData.getAmbientTemperature()+" °C");
+            holder.send.setVisibility(View.VISIBLE);
+            holder.send.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    activity.sendData(String.valueOf(TISensorTagData.getAmbientTemperature()).replace(',','.'));
+                }
+            });
         }
         else if (currentCharacteristic.getUuid().toString().equals(TexasInstrumentsUtils.UUID_STRING_CHARACTERISTIC_HUMIDITY_DATA))
         {
@@ -230,7 +238,6 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
         }
 
         holder.nameTextView.setText("Descriptor");
-
         holder.UUIDTextView.setText(currentDescriptor.getUuid().toString());
 
         if (currentDescriptor.getValue() != null)
@@ -252,6 +259,7 @@ public class SecondExpandableDeviceValuesListAdapter extends BaseExpandableListA
         private TextView permissionTextView;
         private TextView valueTextView;
         private ImageView arrow;
+        private TextView send;
     }
 
     static class ThirdLevelViewHolder
