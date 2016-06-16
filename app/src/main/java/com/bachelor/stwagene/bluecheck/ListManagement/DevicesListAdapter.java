@@ -82,4 +82,9 @@ public class DevicesListAdapter extends ArrayAdapter<BleDevice>
         }
         return false;
     }
+
+    public ArrayList<BleDevice> getItems()
+    {
+        return items;
+    }
 }

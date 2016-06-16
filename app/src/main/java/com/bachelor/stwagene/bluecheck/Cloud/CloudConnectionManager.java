@@ -15,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -32,10 +33,11 @@ public class CloudConnectionManager extends AsyncTask
 {
     private final MainActivity activity;
     private long timeInMillis;
-    private String additionalURL;
     private String httpUser;
     private String httpPwd;
     private String httpHost;
+    private boolean isPost;
+    private ArrayList<String> deviceIdList = new ArrayList<>();
 
     public CloudConnectionManager (MainActivity activity)
     {
@@ -46,12 +48,22 @@ public class CloudConnectionManager extends AsyncTask
     protected Object doInBackground(Object[] params)
     {
         init();
-        return post(getJSONString((String) params[0]));
+        Map<String, String> response;
+        isPost = (boolean) params[0];
+        if (isPost)
+        {
+            response = post(getPostJsonString((String) params[1]));
+        }
+        else
+        {
+            deviceIdList = (ArrayList<String>) params[1];
+            response = put(getPutJsonString());
+        }
+        return response;
     }
 
     private void init()
     {
-        this.additionalURL = "measurement/measurements";
         this.httpUser = "device_blueTag";
         this.httpPwd = "VXnzzlVbQR";
         this.httpHost = "https://asterix.ram.m2m.telekom.com/";
@@ -60,27 +72,49 @@ public class CloudConnectionManager extends AsyncTask
     @Override
     protected void onPostExecute(Object o)
     {
-        activity.writeToLog("Senden der Daten abgeschlossen. Gesendeter Wert: " + ((Map<String, String>)o).get("value"));
-        Toast.makeText(activity.getApplicationContext(), "Der Wert wurde gesendet.", Toast.LENGTH_SHORT).show();
+        if (isPost)
+        {
+            activity.writeToLog("Senden der Daten abgeschlossen. Gesendeter Wert: " + ((Map<String, String>)o).get("value"));
+            Toast.makeText(activity.getApplicationContext(), "Der Wert wurde gesendet.", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            activity.writeToLog("Senden der Liste abgeschlossen. Gesendete Liste: " + deviceIdList.toString());
+            Toast.makeText(activity.getApplicationContext(), "Die Liste wurde gesendet.", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    public Map<String, String> post(String jSon)
+    private Map<String, String> put(String jSon)
     {
-        activity.writeToLog("Initialisieren des POST-Befehls.");
+        String addURL = "inventory/managedObjects/4045668";
+        String type = "PUT";
+        return sendRestCall(type, jSon, addURL);
+    }
+
+    private Map<String, String> post(String jSon)
+    {
+        String addURL = "measurement/measurements";
+        String type = "POST";
+        return sendRestCall(type, jSon, addURL);
+    }
+
+    private Map<String, String> sendRestCall(String type, String jSon, String addURL)
+    {
+        activity.writeToLog("Initialisieren des" + type + "-Befehls.");
         Map<String, String> credentialsMap = new HashMap<String, String>();
         // URL-Verbindung in die Cloud herstellen
         try
         {
-            URL url = newURL(this.additionalURL);
+            URL url = newURL(addURL);
             // Verbindung �ffnen
             HttpsURLConnection httpsCon = (HttpsURLConnection) url.openConnection();
             // Output und Inout aktivieren
             httpsCon.setDoOutput(true);
             httpsCon.setDoInput(true);
-            // RequestMode auf Post stellen
-            httpsCon.setRequestMethod("POST");
+            // RequestMode auf den Type stellen
+            httpsCon.setRequestMethod(type);
 
-            httpsCon = createHttpsCon(httpsCon, this.additionalURL);
+            httpsCon = createHttpsCon(httpsCon, addURL);
             // Json String per REST absetzen
             activity.writeToLog("HTTP-Verbindung hergestellt.");
             OutputStream out = httpsCon.getOutputStream();
@@ -88,10 +122,8 @@ public class CloudConnectionManager extends AsyncTask
             OutputStreamWriter osw = new OutputStreamWriter(out);
             osw.write(jSon);
             osw.flush();
-            activity.writeToLog("POST-REST-Befehl wurde abgesetzt.");
-            // Sofern mit bootstrap zugegeriffen wird: Datei mit Device-Credentials
-            // erzeugen
-            // Andernfalls: R�ckgabe lesen und zur�ckgeben.
+            activity.writeToLog(type + "-REST-Befehl wurde abgesetzt.");
+            // R�ckgabe lesen und zur�ckgeben.
             // Bearbeiten des R�ckgabestrings
             credentialsMap = convertString(httpsCon);
 
@@ -116,16 +148,22 @@ public class CloudConnectionManager extends AsyncTask
         httpsCon.setRequestProperty("Authorization", "Basic " + auth);
         httpsCon.setRequestProperty("X-Id", "voith");
         String[] parts = addUrl.split("/");
+        String type = "";
+
         // Notwendig da sonst Error 406.
-        if (parts[parts.length - 1].equals("managedObjects")) {
-            parts[parts.length - 1] = "managedObject";
+        if (!isPost && parts[parts.length - 2].equals("managedObjects"))
+        {
+            type = "managedObject";
         }
-        if (parts[parts.length - 1].equals("measurements")) {
-            parts[parts.length - 1] = "measurement";
+        else if (parts[parts.length - 1].equals("measurements"))
+        {
+            type = "measurement";
         }
-        String PREFIXCONTENTTYPE = "application/vnd.com.nsn.cumulocity.";
-        httpsCon.setRequestProperty("Content-Type", PREFIXCONTENTTYPE + parts[parts.length - 1] + "+json");
-        httpsCon.setRequestProperty("Accept", PREFIXCONTENTTYPE + parts[parts.length - 1] + "+json");
+
+        String PREFIX_CONTENT_TYPE = "application/vnd.com.nsn.cumulocity.";
+        httpsCon.setRequestProperty("Content-Type", PREFIX_CONTENT_TYPE + type + "+json");
+        httpsCon.setRequestProperty("Accept", PREFIX_CONTENT_TYPE + type + "+json");
+
         return httpsCon;
     }
 
@@ -145,25 +183,37 @@ public class CloudConnectionManager extends AsyncTask
     private Map<String, String> convertString(HttpsURLConnection httpsCon) throws IOException
     {
         String line = printReader(httpsCon);
-
-        // bearbeiten der R�ckgabe von Cumulocity
         line = line.replace("\"", "");
         line = line.replace("{", "");
         line = line.replace("}", "");
-        String[] lineparts = line.split(",");
         Map<String, String> credentialsMap = new HashMap<String, String>();
-        // Alle Inhalte in eine Map schreiben.
-        for (int i = 0; i < lineparts.length; i++)
+
+        // bearbeiten der R�ckgabe von Cumulocity
+
+        if (isPost)
         {
-            String key = lineparts[i].split(":")[0];
-            String value = "";
-            try {
-                value = lineparts[i].split(":")[1];
-            } catch (Exception e) {
-                value = "";
+            String[] lineparts = line.split(",");
+            // Alle Inhalte in eine Map schreiben.
+            for (String linepart : lineparts)
+            {
+                String key = linepart.split(":")[0];
+                String value;
+                try
+                {
+                    value = linepart.split(":")[1];
+                } catch (Exception e)
+                {
+                    value = "";
+                }
+                credentialsMap.put(key, value);
             }
-            credentialsMap.put(key, value);
         }
+        else
+        {
+            String key = "ID_LIST";
+            credentialsMap.put(key, line);
+        }
+
         return credentialsMap;
     }
 
@@ -241,15 +291,32 @@ public class CloudConnectionManager extends AsyncTask
         return year + "-" + month + "-" + day + "T" + hours + ":" + minute + ":" + second + result + tzString;
     }
 
-    private String getJSONString(String text)
+    private String getPutJsonString()
+    {
+        String sn = "blueTagIdList";
+        String type = "list";
+        StringBuilder list = new StringBuilder();
+        for (int i = 0; i < deviceIdList.size(); i++)
+        {
+            list.append("\"");
+            list.append(deviceIdList.get(i));
+            list.append("\"");
+            if (i != (deviceIdList.size()-1))
+            {
+                list.append(",");
+            }
+        }
+        return "{\"" + sn + "\":{\"" + type + "\":[" + list.toString() + "]}}";
+    }
+
+    private String getPostJsonString(String valueOfDevice)
     {
         String sn = "deviceTemparature";
         String type = "tempType";
         String dtype = "°C";
         String date =  getCurrentTime(new GregorianCalendar());
         String id = "4045668";
-        String valueDevice = text;
-        return "{\"" + sn + "\":{\"" + type + "\":{\"value\":" + valueDevice + ",\"unit\":\"" + dtype + "\"}},\"time\":\"" + date + "\",\"source\":{\"id\":\"" + id
+        return "{\"" + sn + "\":{\"" + type + "\":{\"value\":" + valueOfDevice + ",\"unit\":\"" + dtype + "\"}},\"time\":\"" + date + "\",\"source\":{\"id\":\"" + id
                 + "\"},\"type\":\"" + sn + "\"}";
     }
 }

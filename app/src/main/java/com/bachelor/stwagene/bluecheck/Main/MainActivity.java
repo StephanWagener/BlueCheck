@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity
     private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
     private ImageView backButton;
     private boolean isDeveloperMode = true;
+    private Button sendIdList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -91,6 +92,49 @@ public class MainActivity extends AppCompatActivity
         initButtonScans();
 
         initDeviceList();
+
+        initSendButton();
+    }
+
+    private void initSendButton()
+    {
+        sendIdList = (Button) findViewById(R.id.send_id_list);
+
+        if (isDeveloperMode())
+        {
+            sendIdList.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            sendIdList.setVisibility(View.GONE);
+        }
+
+        sendIdList.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                initPut();
+            }
+        });
+    }
+
+    private void initPut()
+    {
+        ArrayList<String> deviceIdList = new ArrayList<>();
+        for (int i = 0; i < deviceListAdapter.getItems().size(); i++)
+        {
+            deviceIdList.add(deviceListAdapter.getItems().get(i).getDevice().getAddress());
+        }
+        if (deviceIdList.size() < 3)
+        {
+            deviceIdList.add("00:11:22:AA:BB:CC");
+            deviceIdList.add("10:20:30:40:50:60");
+            deviceIdList.add("CC:BB:AA:FF:EE:DD");
+            deviceIdList.add("00:11:00:11:00:11");
+        }
+        CloudConnectionManager manager = new CloudConnectionManager(MainActivity.this);
+        manager.execute(false, deviceIdList);
     }
 
     private void checkBluetoothOfDevice()
@@ -392,7 +436,7 @@ public class MainActivity extends AppCompatActivity
             {
                 if (this.isBleScanning || mBluetoothAdapter.isDiscovering())
                 {
-                    stopBleScan();
+                    stopBleScan(false);
                 }
                 else if (mGatt != null)
                 {
@@ -502,7 +546,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run()
                 {
-                    stopBleScan();
+                    stopBleScan(true);
                 }
             }, 5000);
         }
@@ -519,11 +563,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void stopBleScan()
+    private void stopBleScan(boolean isFinished)
     {
         refreshLoadFragment("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
-        isScanOneFinished = true;
+        isScanOneFinished = isFinished;
         scanTwo.setTextColor(getResources().getColor(android.R.color.white));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
@@ -535,6 +579,10 @@ public class MainActivity extends AppCompatActivity
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
         closeProgressFragment();
+        if (isFinished && !isDeveloperMode())
+        {
+            initPut();
+        }
     }
 
     private void closeProgressFragment()
@@ -587,7 +635,7 @@ public class MainActivity extends AppCompatActivity
         if (isNetworkConnected())
         {
             CloudConnectionManager manager = new CloudConnectionManager(this);
-            manager.execute(deviceValue);
+            manager.execute(true, deviceValue);
         }
         else
         {
@@ -689,5 +737,13 @@ public class MainActivity extends AppCompatActivity
     public void setDeveloperMode(boolean isActive)
     {
         this.isDeveloperMode = isActive;
+        if (isDeveloperMode())
+        {
+            sendIdList.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            sendIdList.setVisibility(View.GONE);
+        }
     }
 }
