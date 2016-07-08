@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity
         {
             deviceIdList.add(deviceListAdapter.getItems().get(i).getDevice().getAddress());
         }
+        //TODO entfernen der dummies
         if (deviceIdList.size() < 3)
         {
             deviceIdList.add("00:11:22:AA:BB:CC");
