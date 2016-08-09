@@ -1,5 +1,7 @@
 package com.bachelor.stwagene.bluecheck.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -9,43 +11,60 @@ import java.util.TimeZone;
  */
 public class MeasurementValue
 {
-    private String name;
+    private DeviceTemperature deviceTemparature;
+    private String time;
+    private Source source;
     private String type;
-    private String dataType;
-    private String date;
-    private String id;
-    private String value;
+    @JsonIgnore
     private long timeInMillis;
 
     public MeasurementValue () {}
 
-    public MeasurementValue (String name, String type, String dType, String id, String value)
+    public MeasurementValue (DeviceTemperature deviceTemparature,Source source)
     {
-        this.name = name;
-        this.type = type;
-        this.dataType = dType;
-        this.id = id;
-        this.value = value;
+        this.deviceTemparature = deviceTemparature;
+        this.source = source;
     }
 
-    public MeasurementValue (String name, String type, String dType, String date, String id, String value)
+    public MeasurementValue (DeviceTemperature deviceTemparature, String time, Source source)
     {
-        this.name = name;
-        this.type = type;
-        this.dataType = dType;
-        this.date = date;
-        this.id = id;
-        this.value = value;
+        this.deviceTemparature = deviceTemparature;
+        this.time = time;
+        this.source = source;
     }
 
-    public String getName()
+    public DeviceTemperature getDeviceTemparature()
     {
-        return name;
+        return deviceTemparature;
     }
 
-    public void setName(String name)
+    public void setDeviceTemparature(DeviceTemperature deviceTemparature)
     {
-        this.name = name;
+        this.deviceTemparature = deviceTemparature;
+    }
+
+    public String getTime()
+    {
+        if (time == null)
+        {
+            time = getCurrentTime(new GregorianCalendar());
+        }
+        return time;
+    }
+
+    public void setTime(String time)
+    {
+        this.time = time;
+    }
+
+    public Source getSource()
+    {
+        return source;
+    }
+
+    public void setSource(Source source)
+    {
+        this.source = source;
     }
 
     public String getType()
@@ -56,50 +75,6 @@ public class MeasurementValue
     public void setType(String type)
     {
         this.type = type;
-    }
-
-    public String getDataType()
-    {
-        return dataType;
-    }
-
-    public void setDataType(String dataType)
-    {
-        this.dataType = dataType;
-    }
-
-    public String getDate()
-    {
-        if (date == null)
-        {
-            date = getCurrentTime(new GregorianCalendar());
-        }
-        return date;
-    }
-
-    public void setDate(String date)
-    {
-        this.date = date;
-    }
-
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue(String value)
-    {
-        this.value = value;
     }
 
     /**
@@ -168,11 +143,5 @@ public class MeasurementValue
             tzString = String.valueOf(tzOffset) + ":00";
         }
         return year + "-" + month + "-" + day + "T" + hours + ":" + minute + ":" + second + result + tzString;
-    }
-
-    public String getJsonString()
-    {
-        return "{\"" + name + "\":{\"" + type + "\":{\"value\":" + value + ",\"unit\":\"" + dataType + "\"}},\"time\":\"" + getDate() + "\",\"source\":{\"id\":\"" + id
-                + "\"},\"type\":\"" + name + "\"}";
     }
 }

@@ -4,7 +4,12 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
+import com.bachelor.stwagene.bluecheck.Model.DeviceTemperature;
 import com.bachelor.stwagene.bluecheck.Model.MeasurementValue;
+import com.bachelor.stwagene.bluecheck.Model.Source;
+import com.bachelor.stwagene.bluecheck.Model.TempType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -240,12 +245,29 @@ public class CloudConnectionManager extends AsyncTask
 
     private String getPostJsonString(String valueOfDevice)
     {
+        double value = Double.valueOf(valueOfDevice);
         MeasurementValue measurementValue = new MeasurementValue();
-        measurementValue.setName("deviceTemparature");
-        measurementValue.setType("tempType");
-        measurementValue.setDataType("°C");
-        measurementValue.setId("4045668");
-        measurementValue.setValue(valueOfDevice);
-        return measurementValue.getJsonString();
+        DeviceTemperature deviceTemparature = new DeviceTemperature();
+        TempType tempType = new TempType();
+        tempType.setValue(value);
+        tempType.setUnit("°C");
+        deviceTemparature.setTempType(tempType);
+        measurementValue.setDeviceTemparature(deviceTemparature);
+        Source source = new Source();
+        source.setId("4045668");
+        measurementValue.setSource(source);
+        measurementValue.setType("deviceTemparature");
+        measurementValue.getTime();
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try
+        {
+            json = mapper.writeValueAsString(measurementValue);
+        }
+        catch (JsonProcessingException e)
+        {
+            e.printStackTrace();
+        }
+        return json;
     }
 }
