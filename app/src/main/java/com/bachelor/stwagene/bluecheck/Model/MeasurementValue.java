@@ -11,7 +11,7 @@ import java.util.TimeZone;
  */
 public class MeasurementValue
 {
-    private DeviceTemperature deviceTemparature;
+    private DeviceValue deviceValue;
     private String time;
     private Source source;
     private String type;
@@ -20,27 +20,27 @@ public class MeasurementValue
 
     public MeasurementValue () {}
 
-    public MeasurementValue (DeviceTemperature deviceTemparature,Source source)
+    public MeasurementValue (DeviceValue deviceValue, Source source)
     {
-        this.deviceTemparature = deviceTemparature;
+        this.deviceValue = deviceValue;
         this.source = source;
     }
 
-    public MeasurementValue (DeviceTemperature deviceTemparature, String time, Source source)
+    public MeasurementValue (DeviceValue deviceValue, String time, Source source)
     {
-        this.deviceTemparature = deviceTemparature;
+        this.deviceValue = deviceValue;
         this.time = time;
         this.source = source;
     }
 
-    public DeviceTemperature getDeviceTemparature()
+    public DeviceValue getDeviceValue()
     {
-        return deviceTemparature;
+        return deviceValue;
     }
 
-    public void setDeviceTemparature(DeviceTemperature deviceTemparature)
+    public void setDeviceValue(DeviceValue deviceValue)
     {
-        this.deviceTemparature = deviceTemparature;
+        this.deviceValue = deviceValue;
     }
 
     public String getTime()

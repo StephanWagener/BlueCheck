@@ -22,7 +22,6 @@ import java.util.ArrayList;
 public class DeviceValuesListFragment extends Fragment
 {
     private DeviceValuesListAdapter adapter;
-    private Thread refreshThread;
 
     public DeviceValuesListFragment () {}
 

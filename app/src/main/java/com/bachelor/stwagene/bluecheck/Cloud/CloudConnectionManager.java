@@ -4,10 +4,10 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
-import com.bachelor.stwagene.bluecheck.Model.DeviceTemperature;
+import com.bachelor.stwagene.bluecheck.Model.DeviceValue;
 import com.bachelor.stwagene.bluecheck.Model.MeasurementValue;
 import com.bachelor.stwagene.bluecheck.Model.Source;
-import com.bachelor.stwagene.bluecheck.Model.TempType;
+import com.bachelor.stwagene.bluecheck.Model.ValueType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -247,12 +247,12 @@ public class CloudConnectionManager extends AsyncTask
     {
         double value = Double.valueOf(valueOfDevice);
         MeasurementValue measurementValue = new MeasurementValue();
-        DeviceTemperature deviceTemparature = new DeviceTemperature();
-        TempType tempType = new TempType();
+        DeviceValue deviceTemparature = new DeviceValue();
+        ValueType tempType = new ValueType();
         tempType.setValue(value);
         tempType.setUnit("°C");
-        deviceTemparature.setTempType(tempType);
-        measurementValue.setDeviceTemparature(deviceTemparature);
+        deviceTemparature.setValueType(tempType);
+        measurementValue.setDeviceValue(deviceTemparature);
         Source source = new Source();
         source.setId("4045668");
         measurementValue.setSource(source);

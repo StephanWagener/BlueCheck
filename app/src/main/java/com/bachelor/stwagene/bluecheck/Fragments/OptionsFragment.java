@@ -63,6 +63,7 @@ public class OptionsFragment extends Fragment
                 }
                 else
                 {
+                    //TODO Zurücksetzen implementieren
                     Toast.makeText(getActivity().getApplicationContext(), "Noch nicht verfügbar!", Toast.LENGTH_SHORT).show();
                 }
             }
