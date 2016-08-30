@@ -23,7 +23,7 @@ public class FirstExpandableDeviceValuesListAdapter extends BaseExpandableListAd
 {
     private final ArrayList<BluetoothGattService> services;
     private final MainActivity activity;
-    ArrayList<FirstLevelViewHolder> holders = new ArrayList<>();
+    private ArrayList<FirstLevelViewHolder> holders = new ArrayList<>();
 
     public FirstExpandableDeviceValuesListAdapter(ArrayList<BluetoothGattService> services, MainActivity activity)
     {

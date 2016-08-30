@@ -9,6 +9,7 @@ import java.util.ArrayList;
  */
 public class TISensorTagData
 {
+    //TODO keine public Klasse mit statischen Methoden verwenden
     public static ArrayList<BluetoothGattService> services = new ArrayList<>();
     private static double objectTemperature = 0;
     private static double ambientTemperature = 0;

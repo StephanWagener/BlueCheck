@@ -1,48 +1,46 @@
 package com.bachelor.stwagene.bluecheck.Main;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothCallback;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
+import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothMainCallback;
+import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallback;
 import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionManager;
+import com.bachelor.stwagene.bluecheck.Cloud.ConnectionReviser;
+import com.bachelor.stwagene.bluecheck.Fragments.DevicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.LogFragment;
-import com.bachelor.stwagene.bluecheck.Fragments.OptionsFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
-import com.bachelor.stwagene.bluecheck.ListManagement.DevicesListAdapter;
 import com.bachelor.stwagene.bluecheck.Model.BleDevice;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
+import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -53,89 +51,57 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
 {
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
+    private static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 2;
     private ArrayList<String> logTexts = new ArrayList<>();
-    private boolean isScanOneFinished = false;
     private boolean isClose = false;
-    private LinearLayout buttonBar;
-    private DevicesListAdapter deviceListAdapter;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner bleScanner;
     private ScanCallback bleCallback;
     private BluetoothAdapter.LeScanCallback mLeScanCallback;
-    public BluetoothHandler handler = new BluetoothHandler(this);
+    private BluetoothHandler handler = new BluetoothHandler(this);
     private BluetoothGatt mGatt;
     private boolean isBleScanning = false;
-    private Button scanTwo;
-    private TextView rssiPercentageTextView;
     private boolean isShowUUIDInLog = true;
     private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
-    private ImageView backButton;
     private boolean isDeveloperMode = true;
-    private Button sendIdList;
+    private boolean isSendingSuccessful = true;
+    private ConnectionReviser connectionReviser;
+    private ArrayList<BleDevice> devices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        //TODO String File für Texte anlegen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
 
-        buttonBar = (LinearLayout) findViewById(R.id.button_bar_scans);
-
         checkBluetoothOfDevice();
+
+        openFragment(new DevicesListFragment(), "DevicesListFragment");
 
         writeToLog("BlueCheck wurde gestartet.");
 
-        initActionBar();
-
-        initToolbar();
-
-        initButtonScans();
-
-        initDeviceList();
-
-        initSendButton();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+            requestLocationPermission();
+        }
     }
 
-    private void initSendButton()
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState)
     {
-        sendIdList = (Button) findViewById(R.id.send_id_list);
-
-        if (isDeveloperMode())
-        {
-            sendIdList.setVisibility(View.VISIBLE);
-        }
-        else
-        {
-            sendIdList.setVisibility(View.GONE);
-        }
-
-        sendIdList.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                initPut();
-            }
-        });
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 
-    private void initPut()
+    private void requestLocationPermission()
     {
-        ArrayList<String> deviceIdList = new ArrayList<>();
-        for (int i = 0; i < deviceListAdapter.getItems().size(); i++)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
         {
-            deviceIdList.add(deviceListAdapter.getItems().get(i).getDevice().getAddress());
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
         }
-        //TODO entfernen der dummies
-        if (deviceIdList.size() < 3)
-        {
-            deviceIdList.add("00:11:22:AA:BB:CC");
-            deviceIdList.add("10:20:30:40:50:60");
-            deviceIdList.add("CC:BB:AA:FF:EE:DD");
-            deviceIdList.add("00:11:00:11:00:11");
-        }
-        CloudConnectionManager manager = new CloudConnectionManager(MainActivity.this);
-        manager.execute(false, deviceIdList);
     }
 
     private void checkBluetoothOfDevice()
@@ -168,7 +134,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == 1)
+        if (requestCode == REQUEST_ENABLE_BLUETOOTH)
         {
             if (resultCode == RESULT_OK)
             {
@@ -182,126 +148,29 @@ public class MainActivity extends AppCompatActivity
                 this.finish();
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void initActionBar()
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
     {
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setElevation(0);
-        getSupportActionBar().setCustomView(R.layout.toolbar_layout);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (requestCode == REQUEST_PERMISSION_ACCESS_COARSE_LOCATION)
         {
-            buttonBar.setElevation(30);
-        }
-    }
-
-    private void initToolbar()
-    {
-        backButton = (ImageView) getSupportActionBar().getCustomView().findViewById(R.id.back_icon);
-        backButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             {
-                onBackPressed();
+                Toast.makeText(this, "Zugriff auf Standort erhalten.", Toast.LENGTH_SHORT).show();
             }
-        });
-
-        ImageView menu = (ImageView) getSupportActionBar().getCustomView().findViewById(R.id.menu_icon);
-        menu.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
+            else
             {
-                writeToLog("Menü-Icon angeklickt.");
-                OptionsFragment fragment = (OptionsFragment) getSupportFragmentManager().findFragmentByTag("OptionsFragment");
-                if (fragment != null)
-                {
-                    onBackPressed();
-                }
-                else
-                {
-                    openFragment(new OptionsFragment(), "OptionsFragment");
-                }
-
+                Toast.makeText(this, "Der Zugriff auf den Standort ist essentiell.", Toast.LENGTH_SHORT).show();
+                finish();
             }
-        });
-
-        rssiPercentageTextView = (TextView) getSupportActionBar().getCustomView().findViewById(R.id.connection_rssi_percentage);
-    }
-
-    private void initButtonScans()
-    {
-        Button scanOne = (Button) findViewById(R.id.button_scan_one);
-        scanTwo = (Button) findViewById(R.id.button_scan_two);
-
-        if (scanOne != null)
-        {
-            scanOne.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    scanTwo.setTextColor(getResources().getColor(R.color.grey));
-                    writeToLog("Scan 1 Button wurde gedrückt.");
-                    isScanOneFinished = false;
-                    if (mBluetoothAdapter.isDiscovering() || isBleScanning)
-                    {
-                        writeToLog("Scan 1 Button wurde während des laufenden Scans erneut gedrückt.");
-                        Toast.makeText(getApplicationContext(), "Es wird bereits gescannt.", Toast.LENGTH_SHORT).show();
-                    }
-                    else
-                    {
-                        ProgressFragment fragment = new ProgressFragment();
-                        Bundle bundle = new Bundle();
-                        bundle.putString("PROGRESS", "Scanne nach Geräten...");
-                        fragment.setArguments(bundle);
-                        openFragment(fragment, "ProgressFragment");
-                        deviceListAdapter.clear();
-                        deviceListAdapter.notifyDataSetChanged();
-                        startBleScan();
-                    }
-                }
-            });
-        }
-
-        if (scanTwo != null)
-        {
-            scanTwo.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    if (isScanOneFinished)
-                    {
-                        Toast.makeText(getApplicationContext(), "Noch nicht verfügbar.", Toast.LENGTH_SHORT).show();
-                    }
-                    else
-                    {
-                        Toast.makeText(getApplicationContext(), "Scan 1 wurde noch nicht ausgeführt.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
         }
     }
 
-    private void initDeviceList()
+    public void performDeviceListItemClick(BleDevice item)
     {
-        ListView devicesList = (ListView) findViewById(R.id.ble_device_list);
-        deviceListAdapter = new DevicesListAdapter(this, R.layout.device_list_item, new ArrayList<BleDevice>());
-
-        if (devicesList != null)
-        {
-            devicesList.setAdapter(deviceListAdapter);
-        }
-    }
-
-    public void performDeviceListItemClick(int position)
-    {
-        connectToDevice(deviceListAdapter.getItem(position).getDevice());
-        writeToLog(deviceListAdapter.getItem(position).getName() + " wurde ausgewählt.");
+        connectToDevice(item.getDevice());
+        writeToLog(item.getName() + "(" + item.getAddress() + ") wurde ausgewählt.");
         ProgressFragment fragment = new ProgressFragment();
         Bundle bundle = new Bundle();
         bundle.putString("PROGRESS", "Verbinde...");
@@ -331,29 +200,52 @@ public class MainActivity extends AppCompatActivity
     public void connectToDevice(BluetoothDevice device)
     {
         writeToLog("Starte Verbindung zu " + device.getName());
-        mGatt = device.connectGatt(this, false, new BluetoothCallback(this));
+        BluetoothGattCallback callback;
+        if (device.getName().contains("SensorTag"))
+        {
+            callback = new BluetoothTexasInstrumentsCallback(this);
+        }
+        else
+        {
+            callback = new BluetoothMainCallback(this);
+        }
+        mGatt = device.connectGatt(this, false, callback);
     }
 
     public void openFragment(Fragment fragment, String name)
     {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
-        ft.add(R.id.activity_layout, fragment, name);
-        ft.addToBackStack(name);
+        if (name.equals("DevicesListFragment"))
+        {
+            ft.setCustomAnimations(android.R.anim.fade_in, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_left);
+            ft.add(R.id.activity_layout, fragment, name);
+        }
+        else
+        {
+            if (name.equals("DeviceServicesListFragment") || name.equals("DeviceValuesListFragment"))
+            {
+                ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left, R.anim.slide_in_right, R.anim.slide_out_right);
+                ft.replace(R.id.activity_layout, fragment, name);
+            }
+            else
+            {
+                ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
+                ft.add(R.id.activity_layout, fragment, name);
+            }
+            ft.addToBackStack(name);
+            updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, true);
+            isClose = false;
+        }
+
         ft.commit();
 
-        backButton.setVisibility(View.VISIBLE);
-        isClose = false;
         if (name.equals("LogFragment"))
         {
-            buttonBar.setVisibility(View.GONE);
+            updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, false);
         }
         if (name.equals("OptionsFragment") || name.equals("ProgressFragment"))
         {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            {
-                buttonBar.setElevation(0);
-            }
+            updateDeviceListView(DeviceListViewOption.BUTTON_BAR_ELEVATION, false);
         }
         writeToLog(name + " wurde geöffnet.");
     }
@@ -361,55 +253,12 @@ public class MainActivity extends AppCompatActivity
     public void writeToLog(String text)
     {
         Log.d("BLUECHECK_ANDROID_APP", text);
-        logTexts.add(getCurrentTimeString() + " --- " + text);
+        logTexts.add(LogFragment.getCurrentTimeString() + " --- " + text);
         LogFragment fragment = (LogFragment) getSupportFragmentManager().findFragmentByTag("LogFragment");
         if (fragment != null)
         {
-            fragment.appendLogText(getCurrentTimeString() + " --- " + text);
+            fragment.appendLogText(LogFragment.getCurrentTimeString() + " --- " + text);
         }
-    }
-
-    public String getCurrentTimeString()
-    {
-        StringBuilder time = new StringBuilder();
-        Calendar c = Calendar.getInstance();
-
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        if (hour < 10)
-        {
-            time.append("0");
-        }
-        time.append(hour);
-        time.append(":");
-
-        int minute = c.get(Calendar.MINUTE);
-        if (minute < 10)
-        {
-            time.append("0");
-        }
-        time.append(minute);
-        time.append(":");
-
-        int seconds = c.get(Calendar.SECOND);
-        if (seconds < 10)
-        {
-            time.append("0");
-        }
-        time.append(seconds);
-        time.append(":");
-
-        int milliseconds = c.get(Calendar.MILLISECOND);
-        if (milliseconds < 10)
-        {
-            time.append("0");
-        }
-        else if (milliseconds < 100)
-        {
-            time.append("0");
-        }
-        time.append(milliseconds);
-
-        return time.toString();
     }
 
     @Override
@@ -418,7 +267,7 @@ public class MainActivity extends AppCompatActivity
         writeToLog("BackButton wurde gedrückt.");
         if (getSupportFragmentManager().getBackStackEntryCount() == 0)
         {
-            backButton.setVisibility(View.GONE);
+            updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, false);
             if (!isClose)
             {
                 isClose = true;
@@ -428,7 +277,7 @@ public class MainActivity extends AppCompatActivity
             {
                 MainActivity.this.finish();
             }
-            buttonBar.setVisibility(View.VISIBLE);
+            updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, true);
         }
         else
         {
@@ -442,30 +291,25 @@ public class MainActivity extends AppCompatActivity
                 else if (mGatt != null)
                 {
                     mGatt.disconnect();
-                    mGatt.close();
                 }
-                buttonBar.setVisibility(View.VISIBLE);
+                updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, true);
             }
             if (lastFragmentName.equals("OptionsFragment"))
             {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                {
-                    buttonBar.setElevation(30);
-                }
+                updateDeviceListView(DeviceListViewOption.BUTTON_BAR_ELEVATION, true);
             }
             if (lastFragmentName.equals("DeviceValuesListFragment") || lastFragmentName.equals("DeviceServicesListFragment"))
             {
                 if (mGatt != null)
                 {
                     mGatt.disconnect();
-                    mGatt.close();
                 }
-                this.rssiPercentageTextView.setVisibility(View.GONE);
+                updateDeviceListView(DeviceListViewOption.RSSI_VALUE_VISIBILITY, false);
             }
             if (getSupportFragmentManager().getBackStackEntryCount() == 1)
             {
-                backButton.setVisibility(View.GONE);
-                buttonBar.setVisibility(View.VISIBLE);
+                updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, false);
+                updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, true);
                 super.onBackPressed();
             }
             if (getSupportFragmentManager().getBackStackEntryCount() > 1)
@@ -476,7 +320,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private void startBleScan()
+    public void startBleScan()
     {
         if (!mBluetoothAdapter.isEnabled())
         {
@@ -503,9 +347,9 @@ public class MainActivity extends AppCompatActivity
                             {
                                 return;
                             }
-                            if (!deviceListAdapter.contains(result.getDevice().getName()))
+                            if (!getDeviceIdList().contains(result.getDevice().getAddress()))
                             {
-                                addDevice(new BleDevice(result.getDevice().getName(), result.getDevice()));
+                                addDevice(new BleDevice(result.getDevice().getName(), result.getDevice(), result.getDevice().getAddress()));
                             }
                         }
                     }
@@ -532,9 +376,9 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void run()
                             {
-                                if (!deviceListAdapter.contains(device.getName()))
+                                if (!getDeviceIdList().contains(device.getAddress()))
                                 {
-                                    addDevice(new BleDevice(device.getName(), device));
+                                    addDevice(new BleDevice(device.getName(), device, device.getAddress()));
                                 }
                             }
                         });
@@ -568,8 +412,7 @@ public class MainActivity extends AppCompatActivity
     {
         refreshLoadFragment("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
-        isScanOneFinished = isFinished;
-        scanTwo.setTextColor(getResources().getColor(android.R.color.white));
+        updateDeviceListView(DeviceListViewOption.SET_SCAN_ONE_FINISHED, true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             bleScanner.stopScan(bleCallback);
@@ -586,24 +429,20 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void initPut()
+    {
+        CloudConnectionManager manager = new CloudConnectionManager(this);
+        manager.execute(false, getDeviceIdList());
+    }
+
     private void closeProgressFragment()
     {
         ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag("ProgressFragment");
         if (fragment != null)
         {
             fragment.close();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            {
-                buttonBar.setElevation(30);
-            }
+            updateDeviceListView(DeviceListViewOption.BUTTON_BAR_ELEVATION, true);
         }
-    }
-
-    private void addDevice(BleDevice bleDevice)
-    {
-        deviceListAdapter.add(bleDevice);
-        deviceListAdapter.notifyDataSetChanged();
-        writeToLog("Gerät (" + bleDevice.getName() + ") gefunden.");
     }
 
     @Override
@@ -631,43 +470,20 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
     }
 
-    public void sendData(String deviceValue)
+    @Override
+    protected void onResume()
     {
-        if (isNetworkConnected())
+        if (!isSendingSuccessful)
         {
-            CloudConnectionManager manager = new CloudConnectionManager(this);
-            manager.execute(true, deviceValue);
+            connectionReviser.tryToSend(null, true);
         }
-        else
-        {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Es besteht keine Internetverbindung. Willst du eine Verbindung herstellen?");
-            builder.setPositiveButton("Aktivieren",
-                    new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(final DialogInterface dialogInterface, final int i)
-                        {
-                            startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
-                        }
-                    });
-            builder.setNegativeButton("Ablehnen",
-                    new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(final DialogInterface dialogInterface, final int i)
-                        {
-                            Toast.makeText(getApplicationContext(), "Die Daten wurden nicht gesendet.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-            builder.create().show();
-        }
+        super.onResume();
     }
 
-    private boolean isNetworkConnected()
+    public void sendData(String deviceValue)
     {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return cm.getActiveNetworkInfo() != null;
+        connectionReviser = new ConnectionReviser(this);
+        isSendingSuccessful = connectionReviser.tryToSend(deviceValue, false);
     }
 
     public void deleteLogText()
@@ -682,18 +498,10 @@ public class MainActivity extends AppCompatActivity
 
     public void setRssiPercentageValue(int rssiValue)
     {
-        this.rssiPercentageTextView.setVisibility(View.VISIBLE);
-        if (rssiValue < -100)
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        if (fragment != null)
         {
-            this.rssiPercentageTextView.setText(1+"%");
-        }
-        else if (rssiValue > -25)
-        {
-            this.rssiPercentageTextView.setText(100+"%");
-        }
-        else
-        {
-            this.rssiPercentageTextView.setText(String.format("%.1f", ((double)rssiValue+100.0)/75.0*100.0)+"%");
+            fragment.setRssiPercentageValue(rssiValue);
         }
     }
 
@@ -722,6 +530,38 @@ public class MainActivity extends AppCompatActivity
         return valueChangedInterval;
     }
 
+    private void updateDeviceListView(DeviceListViewOption option, boolean enable)
+    {
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        if (fragment != null)
+        {
+            switch (option)
+            {
+                case BUTTON_BAR_ELEVATION:
+                    fragment.setButtonBarElevation(enable);
+                    break;
+                case BUTTON_BAR_VISIBILITY:
+                    fragment.setButtonBarVisibility(enable);
+                    break;
+                case SEND_BUTTON_VISIBILITY:
+                    fragment.setSendButtonVisibility(enable);
+                    break;
+                case SET_SCAN_ONE_FINISHED:
+                    fragment.setScanOneFinished();
+                    break;
+                case BACK_BUTTON_VISIBILITY:
+                    fragment.setBackButtonVisibility(enable);
+                    break;
+                case RSSI_VALUE_VISIBILITY:
+                    fragment.setRssiValueVisibility(enable);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+
     public boolean isDeveloperMode()
     {
         return isDeveloperMode;
@@ -731,20 +571,49 @@ public class MainActivity extends AppCompatActivity
     {
         if (getSupportFragmentManager().getBackStackEntryCount() <= 1)
         {
-            backButton.setVisibility(View.GONE);
+            updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, false);
         }
     }
 
     public void setDeveloperMode(boolean isActive)
     {
         this.isDeveloperMode = isActive;
-        if (isDeveloperMode())
+        updateDeviceListView(DeviceListViewOption.SEND_BUTTON_VISIBILITY, this.isDeveloperMode);
+    }
+
+    public BluetoothHandler getHandler()
+    {
+        return handler;
+    }
+
+    private ArrayList<String> getDeviceIdList()
+    {
+        ArrayList<String> list = new ArrayList<>();
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        if (fragment != null)
         {
-            sendIdList.setVisibility(View.VISIBLE);
+            list = fragment.getDeviceIdList();
         }
-        else
+        return list;
+    }
+
+    private void addDevice(BleDevice bleDevice)
+    {
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        if (fragment != null)
         {
-            sendIdList.setVisibility(View.GONE);
+            fragment.addDevice(bleDevice);
+            writeToLog(bleDevice.getName() + "(" + bleDevice.getAddress() + ") gefunden.");
         }
+    }
+
+    public ArrayList<BleDevice> getDevices()
+    {
+        return devices;
+    }
+
+    public void setDevices(ArrayList<BleDevice> devices)
+    {
+        this.devices = devices;
     }
 }

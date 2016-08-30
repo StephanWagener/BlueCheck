@@ -11,10 +11,18 @@ public class BleDevice
 {
     private String name;
     private BluetoothDevice device;
+    private String address;
 
-    public BleDevice(String name, BluetoothDevice device)
+    public BleDevice(String name, BluetoothDevice device, String address)
     {
         this.device = device;
+        this.name = name;
+        this.address = address;
+    }
+
+    public BleDevice(String name, String address)
+    {
+        this.address = address;
         this.name = name;
     }
 
@@ -26,6 +34,16 @@ public class BleDevice
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public String getAddress()
+    {
+        return address;
+    }
+
+    public void setAddress(String address)
+    {
+        this.address = address;
     }
 
     public BluetoothDevice getDevice()

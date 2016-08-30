@@ -19,7 +19,7 @@ import java.util.UUID;
  *
  * Created by stwagene on 10.05.2016.
  */
-public class BluetoothCallback extends BluetoothGattCallback
+public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
 {
     private MainActivity activity;
     private int state = 0;
@@ -32,7 +32,7 @@ public class BluetoothCallback extends BluetoothGattCallback
     private boolean isHumidityShown = false;
     private boolean isLightIntensityShown = false;
 
-    public BluetoothCallback(MainActivity mainActivity)
+    public BluetoothTexasInstrumentsCallback(MainActivity mainActivity)
     {
         this.activity = mainActivity;
         resetCounter();
@@ -81,7 +81,7 @@ public class BluetoothCallback extends BluetoothGattCallback
 
         if (characteristic != null)
         {
-            activity.handler.writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wird aktiviert.");
+            activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wird aktiviert.");
         }
     }
 
@@ -118,7 +118,7 @@ public class BluetoothCallback extends BluetoothGattCallback
                 break;
         }
 
-        activity.handler.writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wird ausgelesen.");
+        activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wird ausgelesen.");
         saveNextValue(characteristic, gatt);
     }
 
@@ -153,7 +153,7 @@ public class BluetoothCallback extends BluetoothGattCallback
 
         if (characteristic != null)
         {
-            activity.handler.writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wurde aktiviert.");
+            activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Service " + characteristic.getService().getUuid() + " wurde aktiviert.");
         }
     }
 
@@ -165,42 +165,42 @@ public class BluetoothCallback extends BluetoothGattCallback
     @Override
     public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status)
     {
-        activity.handler.setRssiPercentageValue(rssi);
+        activity.getHandler().setRssiPercentageValue(rssi);
         super.onReadRemoteRssi(gatt, rssi, status);
     }
 
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)
     {
-        activity.handler.writeToLog(getClass().getSimpleName() + ": Neuer Verbindungsstatus => " + newState);
+        activity.getHandler().writeToLog(getClass().getSimpleName() + ": Neuer Verbindungsstatus => " + newState);
         switch (newState)
         {
             case BluetoothProfile.STATE_CONNECTED:
-                activity.handler.writeToLog(getClass().getSimpleName() + ": Das Device " + gatt.getDevice().getName() + " wurde verbunden.");
+                activity.getHandler().writeToLog(getClass().getSimpleName() + ": Das Device " + gatt.getDevice().getName() + "(" + gatt.getDevice().getAddress() + ") wurde verbunden.");
                 gatt.discoverServices();
                 break;
             case BluetoothProfile.STATE_DISCONNECTED:
-                activity.handler.writeToLog(getClass().getSimpleName() + ": Die Verbindung zum Device " + gatt.getDevice().getName() + " wurde getrennt.");
+                activity.getHandler().writeToLog(getClass().getSimpleName() + ": Die Verbindung zum Device " + gatt.getDevice().getName() + "(" + gatt.getDevice().getAddress() + ") wurde getrennt.");
                 break;
             default:
                 gatt.disconnect();
-                activity.handler.writeToLog(getClass().getSimpleName() + ": Neuer Verbindungsstatus => " + newState);
+                activity.getHandler().writeToLog(getClass().getSimpleName() + ": Neuer Verbindungsstatus => " + newState);
         }
     }
 
     @Override
     public void onServicesDiscovered(BluetoothGatt gatt, int status)
     {
-        activity.handler.writeToLog(getClass().getSimpleName() + ": Services und Characteristics werden ausgelesen und gespeichert.");
+        activity.getHandler().writeToLog(getClass().getSimpleName() + ": Services und Characteristics werden ausgelesen und gespeichert.");
         TISensorTagData.services = (ArrayList<BluetoothGattService>) gatt.getServices();
-        activity.handler.refreshProgressFragment("Lese Daten...");
+        activity.getHandler().refreshProgressFragment("Lese Daten...");
         initNextService(gatt);
     }
 
     @Override
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status)
     {
-        activity.handler.writeToLog(getClass().getSimpleName() + ": Für den Service " + characteristic.getService().getUuid() + " werden die Notifications aktiviert.");
+        activity.getHandler().writeToLog(getClass().getSimpleName() + ": Für den Service " + characteristic.getService().getUuid() + " werden die Notifications aktiviert.");
         enableNextNotifications(characteristic, gatt);
     }
 
@@ -209,7 +209,7 @@ public class BluetoothCallback extends BluetoothGattCallback
     {
         gatt.readRemoteRssi();
         setNextCounter(characteristic);
-        activity.handler.refreshDeviceValuesFragment();
+        activity.getHandler().refreshDeviceValuesFragment();
         saveNextValue(characteristic, gatt);
     }
 
@@ -222,7 +222,7 @@ public class BluetoothCallback extends BluetoothGattCallback
             case TexasInstrumentsUtils.UUID_STRING_SERVICE_TEMPERATURE:
                 if (temperatureCounter == selectedInterval && !isTemperatureShown)
                 {
-                    activity.handler.writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
+                    activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
                     temperatureCounter = 0;
                 }
                 if (selectedInterval == 0)
@@ -234,7 +234,7 @@ public class BluetoothCallback extends BluetoothGattCallback
             case TexasInstrumentsUtils.UUID_STRING_SERVICE_PRESSURE:
                 if (pressureCounter == selectedInterval && !isPressureShown)
                 {
-                    activity.handler.writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
+                    activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
                     pressureCounter = 0;
                 }
                 if (selectedInterval == 0)
@@ -246,7 +246,7 @@ public class BluetoothCallback extends BluetoothGattCallback
             case TexasInstrumentsUtils.UUID_STRING_SERVICE_LIGHT_INTENSITY:
                 if (lightIntensityCounter == selectedInterval && !isLightIntensityShown)
                 {
-                    activity.handler.writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
+                    activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
                     lightIntensityCounter = 0;
                 }
                 if (selectedInterval == 0)
@@ -258,7 +258,7 @@ public class BluetoothCallback extends BluetoothGattCallback
             case TexasInstrumentsUtils.UUID_STRING_SERVICE_HUMIDITY:
                 if (humidityCounter == selectedInterval && !isHumidityShown)
                 {
-                    activity.handler.writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
+                    activity.getHandler().writeToLog(getClass().getSimpleName() + ": Der Wert des Service " + characteristic.getService().getUuid() + " hat sich geändert.");
                     humidityCounter = 0;
                 }
                 if (selectedInterval == 0)
@@ -306,7 +306,7 @@ public class BluetoothCallback extends BluetoothGattCallback
 
         if (state == 3)
         {
-            activity.handler.openDeviceValuesList();
+            activity.getHandler().openDeviceValuesList();
         }
         TISensorTagData.services = (ArrayList<BluetoothGattService>) gatt.getServices();
     }

@@ -9,6 +9,8 @@ import static java.lang.StrictMath.pow;
  */
 public class TexasInstrumentsUtils
 {
+    private TexasInstrumentsUtils(){}
+
     public static final String UUID_STRING_SERVICE_TEMPERATURE = "f000aa00-0451-4000-b000-000000000000";
     public static final String UUID_STRING_CHARACTERISTIC_TEMPERATURE_DATA = "f000aa01-0451-4000-b000-000000000000";
     public static final String UUID_STRING_CHARACTERISTIC_TEMPERATURE_CONFIGURATION = "f000aa02-0451-4000-b000-000000000000";

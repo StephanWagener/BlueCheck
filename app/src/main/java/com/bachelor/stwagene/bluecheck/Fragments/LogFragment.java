@@ -15,6 +15,7 @@ import com.bachelor.stwagene.bluecheck.Model.TexasInstrumentsUtils;
 import com.bachelor.stwagene.bluecheck.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * Show the Log messages fo the application.
@@ -111,4 +112,48 @@ public class LogFragment extends Fragment
         text = text.replaceAll(TexasInstrumentsUtils.UUID_STRING_SERVICE_LIGHT_INTENSITY, "\"Light Intensity Service\"");
         return text;
     }
+
+    public static String getCurrentTimeString()
+    {
+        StringBuilder time = new StringBuilder();
+        Calendar c = Calendar.getInstance();
+
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        if (hour < 10)
+        {
+            time.append("0");
+        }
+        time.append(hour);
+        time.append(":");
+
+        int minute = c.get(Calendar.MINUTE);
+        if (minute < 10)
+        {
+            time.append("0");
+        }
+        time.append(minute);
+        time.append(":");
+
+        int seconds = c.get(Calendar.SECOND);
+        if (seconds < 10)
+        {
+            time.append("0");
+        }
+        time.append(seconds);
+        time.append(":");
+
+        int milliseconds = c.get(Calendar.MILLISECOND);
+        if (milliseconds < 10)
+        {
+            time.append("0");
+        }
+        else if (milliseconds < 100)
+        {
+            time.append("0");
+        }
+        time.append(milliseconds);
+
+        return time.toString();
+    }
+
 }

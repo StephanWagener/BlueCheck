@@ -35,16 +35,16 @@ public class DevicesListAdapter extends ArrayAdapter<BleDevice>
         this.activity = activity;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent)
+    public View getView(final int position, View convertView, ViewGroup parent)
     {
         final View view = inflater.inflate(R.layout.device_list_item, parent, false);
-        BleDevice listItem = items.get(position);
+        final BleDevice listItem = items.get(position);
 
         final TextView name = (TextView) view.findViewById(R.id.device_name);
         name.setText(listItem.getName());
 
         final TextView address = (TextView) view.findViewById(R.id.device_address);
-        address.setText(listItem.getDevice().getAddress());
+        address.setText(listItem.getAddress());
 
         final LinearLayout layout = (LinearLayout) view.findViewById(R.id.device_info);
         layout.setTag(position);
@@ -61,7 +61,7 @@ public class DevicesListAdapter extends ArrayAdapter<BleDevice>
                 if (event.getAction() == MotionEvent.ACTION_UP)
                 {
                     layout.setBackground(activity.getResources().getDrawable(R.drawable.rounded_stroked_box));
-                    activity.performDeviceListItemClick((int) layout.getTag());
+                    activity.performDeviceListItemClick(getItem((int) layout.getTag()));
                     return true;
                 }
                 return false;
@@ -69,18 +69,6 @@ public class DevicesListAdapter extends ArrayAdapter<BleDevice>
         });
 
         return view;
-    }
-
-    public boolean contains(String name)
-    {
-        for (BleDevice device : items)
-        {
-            if (device.getName().equals(name))
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     public ArrayList<BleDevice> getItems()

@@ -136,11 +136,11 @@ public class MeasurementValue
         if (Math.abs(tzOffset) < 10)
         {
             // String auf zwei Stellen erweitern f�r Timezone
-            tzString = "0" + String.valueOf(tzOffset) + ":00";
+            tzString = "0" + tzOffset + ":00";
         }
         else
         {
-            tzString = String.valueOf(tzOffset) + ":00";
+            tzString = tzOffset + ":00";
         }
         return year + "-" + month + "-" + day + "T" + hours + ":" + minute + ":" + second + result + tzString;
     }
