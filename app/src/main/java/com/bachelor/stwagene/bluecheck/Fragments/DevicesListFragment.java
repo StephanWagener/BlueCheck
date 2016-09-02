@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.ListManagement.DevicesListAdapter;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
-import com.bachelor.stwagene.bluecheck.Model.BleDevice;
+import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
 import com.bachelor.stwagene.bluecheck.R;
 
 import java.util.ArrayList;
@@ -36,10 +36,15 @@ public class DevicesListFragment extends Fragment
     private ImageView backButton;
     private ActionBar actionBar;
     private TextView rssiPercentageTextView;
-    private static final String DEVICE_NAME_LIST_TEXT = "deviceNameList";
-    private static final String DEVICE_ADDRESS_LIST_TEXT = "deviceAddressList";
 
     public DevicesListFragment() {}
+
+    @Override
+    public void onResume()
+    {
+        setVisibility(rssiPercentageTextView, false);
+        super.onResume();
+    }
 
     @Nullable
     @Override
@@ -60,12 +65,12 @@ public class DevicesListFragment extends Fragment
 
         initSendButton(view);
 
-        initData(savedInstanceState);
+        initData();
 
         return view;
     }
 
-    private void initData(Bundle savedBundle)
+    private void initData()
     {
         deviceListAdapter.addAll(((MainActivity)getActivity()).getDevices());
         deviceListAdapter.notifyDataSetChanged();
@@ -109,14 +114,14 @@ public class DevicesListFragment extends Fragment
             public void onClick(View v)
             {
                 ((MainActivity)getActivity()).writeToLog("Menü-Icon angeklickt.");
-                OptionsFragment fragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag("OptionsFragment");
+                OptionsFragment fragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
                 if (fragment != null)
                 {
                     getActivity().onBackPressed();
                 }
                 else
                 {
-                    ((MainActivity) getActivity()).openFragment(new OptionsFragment(), "OptionsFragment");
+                    ((MainActivity) getActivity()).openFragment(new OptionsFragment());
                 }
 
             }
@@ -134,7 +139,12 @@ public class DevicesListFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).initPut();
+                ((MainActivity) getActivity()).sendData(deviceListAdapter.getItems());
+                ProgressFragment progressFragment = new ProgressFragment();
+                Bundle bundle = new Bundle();
+                bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Sende Daten...");
+                progressFragment.setArguments(bundle);
+                ((MainActivity) getActivity()).openFragment(progressFragment);
             }
         });
     }
@@ -153,9 +163,9 @@ public class DevicesListFragment extends Fragment
                 isScanOneFinished = false;
                 ProgressFragment fragment = new ProgressFragment();
                 Bundle bundle = new Bundle();
-                bundle.putString("PROGRESS", "Scanne nach Geräten...");
+                bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Scanne nach Geräten...");
                 fragment.setArguments(bundle);
-                ((MainActivity) getActivity()).openFragment(fragment, "ProgressFragment");
+                ((MainActivity) getActivity()).openFragment(fragment);
                 deviceListAdapter.clear();
                 deviceListAdapter.notifyDataSetChanged();
                 ((MainActivity) getActivity()).startBleScan();
@@ -182,7 +192,7 @@ public class DevicesListFragment extends Fragment
     private void initDeviceList(View view)
     {
         ListView devicesList = (ListView) view.findViewById(R.id.ble_device_list);
-        deviceListAdapter = new DevicesListAdapter(((MainActivity) getActivity()), R.layout.device_list_item, new ArrayList<BleDevice>());
+        deviceListAdapter = new DevicesListAdapter(((MainActivity) getActivity()), R.layout.device_list_item, new ArrayList<BluetoothTag>());
 
         if (devicesList != null)
         {
@@ -221,27 +231,21 @@ public class DevicesListFragment extends Fragment
         scanTwo.setTextColor(getResources().getColor(android.R.color.white));
     }
 
-    public ArrayList<String> getDeviceIdList()
+    public ArrayList<BluetoothTag> getDevicesList()
     {
-        ArrayList<String> deviceIdList = new ArrayList<>();
-        for (int i = 0; i < deviceListAdapter.getItems().size(); i++)
-        {
-            deviceIdList.add(deviceListAdapter.getItems().get(i).getAddress());
-        }
-        //TODO entfernen der dummies
-        if (deviceIdList.size() < 3)
-        {
-            deviceIdList.add("00:11:22:AA:BB:CC");
-            deviceIdList.add("10:20:30:40:50:60");
-            deviceIdList.add("CC:BB:AA:FF:EE:DD");
-            deviceIdList.add("00:11:00:11:00:11");
-        }
-        return deviceIdList;
+        return deviceListAdapter.getItems();
     }
 
-    public void addDevice(BleDevice bleDevice)
+    public void addDevice(BluetoothTag bluetoothTag)
     {
-        deviceListAdapter.add(bleDevice);
+        deviceListAdapter.add(bluetoothTag);
+        deviceListAdapter.notifyDataSetChanged();
+    }
+
+    public void refreshDeviceList(ArrayList<BluetoothTag> tags)
+    {
+        deviceListAdapter.clear();
+        deviceListAdapter.addAll(tags);
         deviceListAdapter.notifyDataSetChanged();
     }
 

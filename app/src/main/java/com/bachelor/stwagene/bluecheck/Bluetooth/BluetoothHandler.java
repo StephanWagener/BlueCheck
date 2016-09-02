@@ -30,7 +30,7 @@ public class BluetoothHandler extends Handler
             @Override
             public void run()
             {
-                ProgressFragment fragment = (ProgressFragment) activity.getSupportFragmentManager().findFragmentByTag("ProgressFragment");
+                ProgressFragment fragment = (ProgressFragment) activity.getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
                 if (fragment != null)
                 {
                     fragment.close();
@@ -38,18 +38,18 @@ public class BluetoothHandler extends Handler
 
                 if (activity.isDeveloperMode())
                 {
-                    DeviceServicesListFragment deviceServiceFragment = (DeviceServicesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceServicesListFragment");
+                    DeviceServicesListFragment deviceServiceFragment = (DeviceServicesListFragment) activity.getSupportFragmentManager().findFragmentByTag(DeviceServicesListFragment.class.getSimpleName());
                     if (deviceServiceFragment == null)
                     {
-                        activity.openFragment(new DeviceServicesListFragment(), "DeviceServicesListFragment");
+                        activity.openFragment(new DeviceServicesListFragment());
                     }
                 }
                 else
                 {
-                    DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
+                    DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag(DeviceValuesListFragment.class.getSimpleName());
                     if (deviceValueFragment == null)
                     {
-                        activity.openFragment(new DeviceValuesListFragment(), "DeviceValuesListFragment");
+                        activity.openFragment(new DeviceValuesListFragment());
                     }
                 }
             }
@@ -63,7 +63,7 @@ public class BluetoothHandler extends Handler
             @Override
             public void run()
             {
-                activity.refreshLoadFragment(message);
+                activity.changeProgressText(message);
             }
         });
     }
@@ -75,7 +75,7 @@ public class BluetoothHandler extends Handler
             @Override
             public void run()
             {
-                DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag("DeviceValuesListFragment");
+                DeviceValuesListFragment deviceValueFragment = (DeviceValuesListFragment) activity.getSupportFragmentManager().findFragmentByTag(DeviceValuesListFragment.class.getSimpleName());
                 if (deviceValueFragment != null)
                 {
                     deviceValueFragment.refreshData();

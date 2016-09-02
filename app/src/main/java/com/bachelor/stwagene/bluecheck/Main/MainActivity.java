@@ -29,13 +29,15 @@ import android.widget.Toast;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothMainCallback;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallback;
-import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionManager;
-import com.bachelor.stwagene.bluecheck.Cloud.ConnectionReviser;
+import com.bachelor.stwagene.bluecheck.Cloud.ConnectionInitiator;
+import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DevicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.LogFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.OptionsFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
-import com.bachelor.stwagene.bluecheck.Model.BleDevice;
+import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
 import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
@@ -50,6 +52,10 @@ import java.util.List;
  */
 public class MainActivity extends AppCompatActivity
 {
+    public static final int FALSE_LOADED_PRODUCT = 0;
+    public static final int RIGHT_LOADED_PRODUCT = 1;
+    public static final int MISSING_PRODUCT = 2;
+    public static final int UNKNOWN_PRODUCT = 3;
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 2;
     private ArrayList<String> logTexts = new ArrayList<>();
@@ -65,19 +71,23 @@ public class MainActivity extends AppCompatActivity
     private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
     private boolean isDeveloperMode = true;
     private boolean isSendingSuccessful = true;
-    private ConnectionReviser connectionReviser;
-    private ArrayList<BleDevice> devices = new ArrayList<>();
+    private ConnectionInitiator connectionInitiator;
+    private ArrayList<BluetoothTag> devices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        //TODO info button an dem Warenitem, um alle Informationen zu sehen
         //TODO String File für Texte anlegen
+        //TODO Informationen der Lieferung einarbeiten und anzeigen
+        //TODO Status der Lieferung nach den Scans anzeigen (eine Art Zusammenfassung)
+        //TODO sortieren der Liste
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
 
         checkBluetoothOfDevice();
 
-        openFragment(new DevicesListFragment(), "DevicesListFragment");
+        openFragment(new DevicesListFragment());
 
         writeToLog("BlueCheck wurde gestartet.");
 
@@ -167,16 +177,24 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void performDeviceListItemClick(BleDevice item)
+    public void performDeviceListItemClick(BluetoothTag item)
     {
-        connectToDevice(item.getDevice());
+        //TODO dummy handling entfernen
         writeToLog(item.getName() + "(" + item.getAddress() + ") wurde ausgewählt.");
-        ProgressFragment fragment = new ProgressFragment();
-        Bundle bundle = new Bundle();
-        bundle.putString("PROGRESS", "Verbinde...");
-        fragment.setArguments(bundle);
-        openFragment(fragment, "ProgressFragment");
-        handleConnectionTimeOut();
+        if (item.getDevice() == null)
+        {
+            Toast.makeText(getApplicationContext(), "Nur ein Dummy", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            connectToDevice(item.getDevice());
+            ProgressFragment fragment = new ProgressFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Verbinde...");
+            fragment.setArguments(bundle);
+            openFragment(fragment);
+            handleConnectionTimeOut();
+        }
     }
 
     public void handleConnectionTimeOut()
@@ -212,17 +230,18 @@ public class MainActivity extends AppCompatActivity
         mGatt = device.connectGatt(this, false, callback);
     }
 
-    public void openFragment(Fragment fragment, String name)
+    public void openFragment(Fragment fragment)
     {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        if (name.equals("DevicesListFragment"))
+        String name = fragment.getClass().getSimpleName();
+        if (name.equals(DevicesListFragment.class.getSimpleName()))
         {
             ft.setCustomAnimations(android.R.anim.fade_in, R.anim.slide_out_right, R.anim.slide_in_left, R.anim.slide_out_left);
             ft.add(R.id.activity_layout, fragment, name);
         }
         else
         {
-            if (name.equals("DeviceServicesListFragment") || name.equals("DeviceValuesListFragment"))
+            if (name.equals(DeviceServicesListFragment.class.getSimpleName()) || name.equals(DeviceValuesListFragment.class.getSimpleName()))
             {
                 ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left, R.anim.slide_in_right, R.anim.slide_out_right);
                 ft.replace(R.id.activity_layout, fragment, name);
@@ -239,11 +258,11 @@ public class MainActivity extends AppCompatActivity
 
         ft.commit();
 
-        if (name.equals("LogFragment"))
+        if (name.equals(LogFragment.class.getSimpleName()))
         {
             updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, false);
         }
-        if (name.equals("OptionsFragment") || name.equals("ProgressFragment"))
+        if (name.equals(OptionsFragment.class.getSimpleName()) || name.equals(ProgressFragment.class.getSimpleName()))
         {
             updateDeviceListView(DeviceListViewOption.BUTTON_BAR_ELEVATION, false);
         }
@@ -254,7 +273,7 @@ public class MainActivity extends AppCompatActivity
     {
         Log.d("BLUECHECK_ANDROID_APP", text);
         logTexts.add(LogFragment.getCurrentTimeString() + " --- " + text);
-        LogFragment fragment = (LogFragment) getSupportFragmentManager().findFragmentByTag("LogFragment");
+        LogFragment fragment = (LogFragment) getSupportFragmentManager().findFragmentByTag(LogFragment.class.getSimpleName());
         if (fragment != null)
         {
             fragment.appendLogText(LogFragment.getCurrentTimeString() + " --- " + text);
@@ -282,7 +301,7 @@ public class MainActivity extends AppCompatActivity
         else
         {
             String lastFragmentName = getSupportFragmentManager().getBackStackEntryAt(getSupportFragmentManager().getBackStackEntryCount()-1).getName();
-            if (lastFragmentName.equals("ProgressFragment"))
+            if (lastFragmentName.equals(ProgressFragment.class.getSimpleName()))
             {
                 if (this.isBleScanning || mBluetoothAdapter.isDiscovering())
                 {
@@ -294,11 +313,11 @@ public class MainActivity extends AppCompatActivity
                 }
                 updateDeviceListView(DeviceListViewOption.BUTTON_BAR_VISIBILITY, true);
             }
-            if (lastFragmentName.equals("OptionsFragment"))
+            if (lastFragmentName.equals(OptionsFragment.class.getSimpleName()))
             {
                 updateDeviceListView(DeviceListViewOption.BUTTON_BAR_ELEVATION, true);
             }
-            if (lastFragmentName.equals("DeviceValuesListFragment") || lastFragmentName.equals("DeviceServicesListFragment"))
+            if (lastFragmentName.equals(DeviceValuesListFragment.class.getSimpleName()) || lastFragmentName.equals(DeviceServicesListFragment.class.getSimpleName()))
             {
                 if (mGatt != null)
                 {
@@ -347,9 +366,9 @@ public class MainActivity extends AppCompatActivity
                             {
                                 return;
                             }
-                            if (!getDeviceIdList().contains(result.getDevice().getAddress()))
+                            if (!getBluetoothAddresses(getDevicesList()).contains(result.getDevice().getAddress()))
                             {
-                                addDevice(new BleDevice(result.getDevice().getName(), result.getDevice(), result.getDevice().getAddress()));
+                                addDevice(new BluetoothTag(result.getDevice().getName(), result.getDevice(), result.getDevice().getAddress()));
                             }
                         }
                     }
@@ -376,9 +395,9 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void run()
                             {
-                                if (!getDeviceIdList().contains(device.getAddress()))
+                                if (!getBluetoothAddresses(getDevicesList()).contains(device.getAddress()))
                                 {
-                                    addDevice(new BleDevice(device.getName(), device, device.getAddress()));
+                                    addDevice(new BluetoothTag(device.getName(), device, device.getAddress()));
                                 }
                             }
                         });
@@ -399,9 +418,9 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void refreshLoadFragment(String s)
+    public void changeProgressText(String s)
     {
-        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag("ProgressFragment");
+        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
         if (fragment != null)
         {
             fragment.changeProgressText(s);
@@ -410,7 +429,7 @@ public class MainActivity extends AppCompatActivity
 
     private void stopBleScan(boolean isFinished)
     {
-        refreshLoadFragment("Scannen abgeschlossen...");
+        changeProgressText("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
         updateDeviceListView(DeviceListViewOption.SET_SCAN_ONE_FINISHED, true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -422,22 +441,26 @@ public class MainActivity extends AppCompatActivity
         {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
-        closeProgressFragment();
         if (isFinished && !isDeveloperMode())
         {
-            initPut();
+            sendData(getDevicesList());
+            changeProgressText("Sende Daten...");
+        }
+        else if (isFinished && isDeveloperMode())
+        {
+            closeProgressFragment();
         }
     }
 
-    public void initPut()
+    public void sendData(ArrayList<BluetoothTag> tags)
     {
-        CloudConnectionManager manager = new CloudConnectionManager(this);
-        manager.execute(false, getDeviceIdList());
+        connectionInitiator = new ConnectionInitiator(this);
+        isSendingSuccessful = connectionInitiator.sendDevicesList(tags);
     }
 
-    private void closeProgressFragment()
+    public void closeProgressFragment()
     {
-        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag("ProgressFragment");
+        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
         if (fragment != null)
         {
             fragment.close();
@@ -475,15 +498,15 @@ public class MainActivity extends AppCompatActivity
     {
         if (!isSendingSuccessful)
         {
-            connectionReviser.tryToSend(null, true);
+            connectionInitiator.repeatSending();
         }
         super.onResume();
     }
 
     public void sendData(String deviceValue)
     {
-        connectionReviser = new ConnectionReviser(this);
-        isSendingSuccessful = connectionReviser.tryToSend(deviceValue, false);
+        connectionInitiator = new ConnectionInitiator(this);
+        isSendingSuccessful = connectionInitiator.sendMeasurement(deviceValue);
     }
 
     public void deleteLogText()
@@ -498,7 +521,7 @@ public class MainActivity extends AppCompatActivity
 
     public void setRssiPercentageValue(int rssiValue)
     {
-        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
         {
             fragment.setRssiPercentageValue(rssiValue);
@@ -517,7 +540,7 @@ public class MainActivity extends AppCompatActivity
 
     public void setValueChangedInterval(ChooserListItem valueChangedInterval)
     {
-        SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag("SettingsFragment");
+        SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag(SettingsFragment.class.getSimpleName());
         if (fragment != null)
         {
             fragment.setValueChangedInterval(valueChangedInterval);
@@ -532,7 +555,7 @@ public class MainActivity extends AppCompatActivity
 
     private void updateDeviceListView(DeviceListViewOption option, boolean enable)
     {
-        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
         {
             switch (option)
@@ -586,34 +609,54 @@ public class MainActivity extends AppCompatActivity
         return handler;
     }
 
-    private ArrayList<String> getDeviceIdList()
+    private ArrayList<BluetoothTag> getDevicesList()
     {
-        ArrayList<String> list = new ArrayList<>();
-        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        ArrayList<BluetoothTag> list = new ArrayList<>();
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
         {
-            list = fragment.getDeviceIdList();
+            list = fragment.getDevicesList();
         }
         return list;
     }
 
-    private void addDevice(BleDevice bleDevice)
+    public ArrayList<String> getBluetoothAddresses(ArrayList<BluetoothTag> tags)
     {
-        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag("DevicesListFragment");
+        ArrayList<String> addresses = new ArrayList<>();
+        for (BluetoothTag tag : tags)
+        {
+            addresses.add(tag.getAddress());
+        }
+        return addresses;
+    }
+
+    private void addDevice(BluetoothTag bluetoothTag)
+    {
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
         {
-            fragment.addDevice(bleDevice);
-            writeToLog(bleDevice.getName() + "(" + bleDevice.getAddress() + ") gefunden.");
+            fragment.addDevice(bluetoothTag);
+            writeToLog(bluetoothTag.getName() + "(" + bluetoothTag.getAddress() + ") gefunden.");
         }
     }
 
-    public ArrayList<BleDevice> getDevices()
+    public ArrayList<BluetoothTag> getDevices()
     {
         return devices;
     }
 
-    public void setDevices(ArrayList<BleDevice> devices)
+    public void setDevices(ArrayList<BluetoothTag> devices)
     {
+        this.devices = devices;
+    }
+
+    public void setDeviceList(ArrayList<BluetoothTag> devices)
+    {
+        DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
+        if (fragment != null)
+        {
+            fragment.refreshDeviceList(devices);
+        }
         this.devices = devices;
     }
 }

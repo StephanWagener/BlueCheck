@@ -19,6 +19,7 @@ import com.bachelor.stwagene.bluecheck.R;
  */
 public class ProgressFragment extends Fragment
 {
+    public static final String PROGRESS_FRAGMENT_ARGUMENT_TEXT = "PROGRESS";
     private TextView progressText;
 
     public ProgressFragment() {}
@@ -38,7 +39,7 @@ public class ProgressFragment extends Fragment
 
     private void initText()
     {
-        String text = getArguments().getString("PROGRESS");
+        String text = getArguments().getString(PROGRESS_FRAGMENT_ARGUMENT_TEXT);
         if (text == null)
         {
             progressText.setText("Bitte warten...");

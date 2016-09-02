@@ -80,7 +80,7 @@ public class SettingsFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ((MainActivity)getActivity()).openFragment(new ChooserFragment(), "ChooserFragment");
+                ((MainActivity)getActivity()).openFragment(new ChooserFragment());
             }
         });
 
@@ -95,12 +95,12 @@ public class SettingsFragment extends Fragment
             public void onClick(View v)
             {
                 ((MainActivity)getActivity()).setDeveloperMode(developerMode.isChecked());
-                SettingsFragment fragment = (SettingsFragment) getActivity().getSupportFragmentManager().findFragmentByTag("SettingsFragment");
+                SettingsFragment fragment = (SettingsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(SettingsFragment.class.getSimpleName());
                 if (fragment != null)
                 {
                     fragment.setDeveloperMode();
                 }
-                OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag("OptionsFragment");
+                OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
                 if (optionsFragment != null)
                 {
                     optionsFragment.setDeveloperMode();

@@ -32,16 +32,15 @@ import javax.net.ssl.HttpsURLConnection;
  *
  * Created by stwagene on 04.05.2016.
  */
-public class CloudConnectionManager extends AsyncTask
+public class TelekomCloudCommunicationAdapter extends AsyncTask implements ICloudCommunication
 {
     private final MainActivity activity;
     private String httpUser;
     private String httpPwd;
     private String httpHost;
-    private boolean isPost;
-    private ArrayList<String> deviceIdList = new ArrayList<>();
 
-    public CloudConnectionManager (MainActivity activity)
+    //TODO auskommentierten Code entfernen und senden der Liste bzw Lieferung umsetzen
+    public TelekomCloudCommunicationAdapter(MainActivity activity)
     {
         this.activity = activity;
     }
@@ -50,22 +49,23 @@ public class CloudConnectionManager extends AsyncTask
     protected Object doInBackground(Object[] params)
     {
         init();
-        Map<String, String> response;
-        isPost = (boolean) params[0];
-        if (isPost)
+        Map<String, String> response = null;
+        if (params.length == 1)
         {
-            response = post(getPostJsonString((String) params[1]));
+            response = post(getMeasurementJsonString((String) params[1]));
         }
         else
         {
-            deviceIdList = (ArrayList<String>) params[1];
-            response = put(getPutJsonString());
+            //TODO noch umsetzen
+            /*deviceIdList = (ArrayList<String>) params[1];
+            response = put(getPutJsonString());*/
         }
         return response;
     }
 
     private void init()
     {
+        //TODO den Anwender Auswählen lassen
         this.httpUser = "device_blueTag";
         this.httpPwd = "VXnzzlVbQR";
         this.httpHost = "https://asterix.ram.m2m.telekom.com/";
@@ -74,24 +74,22 @@ public class CloudConnectionManager extends AsyncTask
     @Override
     protected void onPostExecute(Object o)
     {
-        if (isPost)
-        {
-            activity.writeToLog("Senden der Daten abgeschlossen. Gesendeter Wert: " + ((Map<String, String>)o).get("value"));
-            Toast.makeText(activity.getApplicationContext(), "Der Wert wurde gesendet.", Toast.LENGTH_SHORT).show();
-        }
+        activity.writeToLog("Senden der Daten abgeschlossen. Gesendeter Wert: " + ((Map<String, String>)o).get("value"));
+        Toast.makeText(activity.getApplicationContext(), "Der Wert wurde gesendet.", Toast.LENGTH_SHORT).show();
+        /*
         else
         {
             activity.writeToLog("Senden der Liste abgeschlossen. Gesendete Liste: " + deviceIdList.toString());
             Toast.makeText(activity.getApplicationContext(), "Die Liste wurde gesendet.", Toast.LENGTH_SHORT).show();
-        }
+        }*/
     }
 
-    private Map<String, String> put(String jSon)
+    /*private Map<String, String> put(String jSon)
     {
         String addURL = "inventory/managedObjects/4045668";
         String type = "PUT";
         return sendRestCall(type, jSon, addURL);
-    }
+    }*/
 
     private Map<String, String> post(String jSon)
     {
@@ -153,11 +151,12 @@ public class CloudConnectionManager extends AsyncTask
         String type = "";
 
         // Notwendig da sonst Error 406.
-        if (!isPost && parts[parts.length - 2].equals("managedObjects"))
+        /*if (parts[parts.length - 2].equals("managedObjects"))
         {
             type = "managedObject";
         }
-        else if (parts[parts.length - 1].equals("measurements"))
+        else */
+        if (parts[parts.length - 1].equals("measurements"))
         {
             type = "measurement";
         }
@@ -192,29 +191,27 @@ public class CloudConnectionManager extends AsyncTask
 
         // bearbeiten der R�ckgabe von Cumulocity
 
-        if (isPost)
+        String[] lineparts = line.split(",");
+        // Alle Inhalte in eine Map schreiben.
+        for (String linepart : lineparts)
         {
-            String[] lineparts = line.split(",");
-            // Alle Inhalte in eine Map schreiben.
-            for (String linepart : lineparts)
+            String key = linepart.split(":")[0];
+            String value;
+            try
             {
-                String key = linepart.split(":")[0];
-                String value;
-                try
-                {
-                    value = linepart.split(":")[1];
-                } catch (Exception e)
-                {
-                    value = "";
-                }
-                credentialsMap.put(key, value);
+                value = linepart.split(":")[1];
+            } catch (Exception e)
+            {
+                value = "";
             }
+            credentialsMap.put(key, value);
         }
+        /*
         else
         {
             String key = "ID_LIST";
             credentialsMap.put(key, line);
-        }
+        }*/
 
         return credentialsMap;
     }
@@ -225,7 +222,7 @@ public class CloudConnectionManager extends AsyncTask
         return reader.readLine();
     }
 
-    private String getPutJsonString()
+    /*private String getPutJsonString()
     {
         String sn = "blueTagIdList";
         String type = "list";
@@ -241,9 +238,9 @@ public class CloudConnectionManager extends AsyncTask
             }
         }
         return "{\"" + sn + "\":{\"" + type + "\":[" + list.toString() + "]}}";
-    }
+    }*/
 
-    private String getPostJsonString(String valueOfDevice)
+    private String getMeasurementJsonString(String valueOfDevice)
     {
         double value = Double.valueOf(valueOfDevice);
         MeasurementValue measurementValue = new MeasurementValue();
@@ -269,5 +266,17 @@ public class CloudConnectionManager extends AsyncTask
             e.printStackTrace();
         }
         return json;
+    }
+
+    @Override
+    public void sendMeasurement(double value)
+    {
+        this.execute(value);
+    }
+
+    @Override
+    public void sendBlePackageList(ArrayList<String> addresses, String deliveryID)
+    {
+        //TODO implementieren
     }
 }

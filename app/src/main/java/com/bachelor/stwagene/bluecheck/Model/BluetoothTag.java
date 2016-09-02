@@ -7,20 +7,29 @@ import android.bluetooth.BluetoothDevice;
  *
  * Created by stwagene on 02.05.2016.
  */
-public class BleDevice
+public class BluetoothTag
 {
     private String name;
     private BluetoothDevice device;
     private String address;
+    private DeliveryProduct product;
 
-    public BleDevice(String name, BluetoothDevice device, String address)
+    public BluetoothTag(String name, BluetoothDevice device, String address, DeliveryProduct product)
+    {
+        this.product = product;
+        this.device = device;
+        this.name = name;
+        this.address = address;
+    }
+
+    public BluetoothTag(String name, BluetoothDevice device, String address)
     {
         this.device = device;
         this.name = name;
         this.address = address;
     }
 
-    public BleDevice(String name, String address)
+    public BluetoothTag(String name, String address)
     {
         this.address = address;
         this.name = name;
@@ -54,5 +63,15 @@ public class BleDevice
     public void setDevice(BluetoothDevice device)
     {
         this.device = device;
+    }
+
+    public DeliveryProduct getProduct()
+    {
+        return product;
+    }
+
+    public void setProduct(DeliveryProduct product)
+    {
+        this.product = product;
     }
 }

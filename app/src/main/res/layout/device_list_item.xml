@@ -4,35 +4,148 @@
                 android:layout_height="match_parent">
 
     <LinearLayout
+        android:clickable="true"
+        android:padding="20dp"
         android:layout_marginBottom="15dp"
         android:id="@+id/device_info"
         android:gravity="center"
         android:background="@drawable/rounded_stroked_box"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="70dp">
+        android:layout_height="wrap_content">
 
         <TextView
             android:textSize="20sp"
-            android:id="@+id/device_name"
+            android:id="@+id/device_category_product"
             android:textColor="@android:color/black"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="Test Name"
-            android:gravity="center_vertical"
+            android:text="Ware - ID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-        <TextView
-            android:textSize="20sp"
-            android:id="@+id/device_address"
-            android:textColor="@android:color/darker_gray"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="Adresse"
-            android:gravity="center_vertical"
+        <LinearLayout
+            android:weightSum="3"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_weight="2"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"
+                android:text="Name:"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_weight="1"
+                android:textSize="18sp"
+                android:id="@+id/device_product_name"
+                android:textColor="@android:color/black"
+                android:text="wird ermittelt..."
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:weightSum="3"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_weight="2"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"
+                android:text="Status:"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_weight="1"
+                android:text="wird ermittelt..."
+                android:textSize="18sp"
+                android:id="@+id/device_product_state"
+                android:textColor="@android:color/black"
+                android:gravity="center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:id="@+id/device_bluetooth_info"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:textSize="20sp"
+                android:id="@+id/device_category_bluetooth"
+                android:textColor="@android:color/black"
+                android:text="Bluetooth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:weightSum="3"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_weight="2"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:text="Name:"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:layout_weight="1"
+                    android:textSize="18sp"
+                    android:id="@+id/device_name"
+                    android:textColor="@android:color/black"
+                    android:text="Test Name"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:weightSum="3"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_weight="2"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:text="Adresse:"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:layout_weight="1"
+                    android:textSize="18sp"
+                    android:id="@+id/device_address"
+                    android:textColor="@android:color/black"
+                    android:text="Adresse"
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 

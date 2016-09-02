@@ -52,14 +52,14 @@ public class OptionsFragment extends Fragment
                 else if (currentType.equals(OptionType.LOG))
                 {
                     Bundle args = new Bundle();
-                    args.putStringArrayList("LOG", ((MainActivity) getActivity()).getLogTexts());
+                    args.putStringArrayList(LogFragment.LOG_FRAGMENT_ARGUMENT_TEXT, ((MainActivity) getActivity()).getLogTexts());
                     LogFragment logFragment = new LogFragment();
                     logFragment.setArguments(args);
-                    ((MainActivity) getActivity()).openFragment(logFragment, "LogFragment");
+                    ((MainActivity) getActivity()).openFragment(logFragment);
                 }
                 else if (currentType.equals(OptionType.SETTINGS))
                 {
-                    ((MainActivity) getActivity()).openFragment(new SettingsFragment(), "SettingsFragment");
+                    ((MainActivity) getActivity()).openFragment(new SettingsFragment());
                 }
                 else
                 {

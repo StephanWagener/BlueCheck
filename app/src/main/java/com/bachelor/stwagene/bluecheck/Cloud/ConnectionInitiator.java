@@ -8,16 +8,20 @@ import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
+import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
+
+import java.util.ArrayList;
 
 /**
  * Created by stwagene on 19.08.2016.
  */
-public class ConnectionReviser
+public class ConnectionInitiator
 {
     private final MainActivity activity;
-    private String dataToSend = "";
+    private String measurementToSend = null;
+    private ArrayList<BluetoothTag> tagsToSend = new ArrayList<>();
 
-    public ConnectionReviser (MainActivity activity)
+    public ConnectionInitiator(MainActivity activity)
     {
         this.activity = activity;
     }
@@ -28,15 +32,9 @@ public class ConnectionReviser
         return cm.getActiveNetworkInfo() != null;
     }
 
-    public boolean tryToSend(final String data, boolean isRepetition)
+    public void repeatSending()
     {
-        if (data != null)
-        {
-            this.dataToSend = data;
-        }
-        boolean isSuccessful = isNetworkConnected();
-
-        if (!isSuccessful)
+        if (!isNetworkConnected())
         {
             AlertDialog.Builder builder = getDialog("Es besteht keine Internetverbindung. Willst du eine Verbindung herstellen?");
             builder.setPositiveButton("Aktivieren",
@@ -50,7 +48,7 @@ public class ConnectionReviser
                     });
             builder.show();
         }
-        else if (isRepetition)
+        else
         {
             AlertDialog.Builder builder = getDialog("Sollen die Daten erneut gesendet werden?");
             builder.setPositiveButton("Senden",
@@ -59,23 +57,55 @@ public class ConnectionReviser
                         @Override
                         public void onClick(final DialogInterface dialogInterface, final int i)
                         {
-                            send(dataToSend);
+                            send();
                         }
                     });
             builder.show();
         }
-        else
+    }
+
+    public boolean sendDevicesList(final ArrayList<BluetoothTag> tags)
+    {
+        this.tagsToSend = tags;
+        boolean isSuccessful = isNetworkConnected();
+
+        if (isSuccessful)
         {
-            send(dataToSend);
+            send();
+            tagsToSend = null;
         }
 
         return isSuccessful;
     }
 
-    private void send(String data)
+    public boolean sendMeasurement(final String measurement)
     {
-        CloudConnectionManager manager = new CloudConnectionManager(activity);
-        manager.execute(true, data);
+        this.measurementToSend = measurement;
+        boolean isSuccessful = isNetworkConnected();
+
+        if (isSuccessful)
+        {
+            send();
+            measurementToSend = null;
+        }
+
+        return isSuccessful;
+    }
+
+    private void send()
+    {
+        //TODO Mock entfernen, wenn alles implementiert wurde
+        //TODO lieferung umsetzen und dummy entfernen
+        if (measurementToSend != null)
+        {
+            TelekomCloudCommunicationAdapter adapter = new TelekomCloudCommunicationAdapter(activity);
+            adapter.sendMeasurement(Double.parseDouble(measurementToSend));
+        }
+        else if (tagsToSend != null)
+        {
+            TelekomCloudMock mock = new TelekomCloudMock(this.activity);
+            mock.sendBlePackageList(this.activity.getBluetoothAddresses(tagsToSend), "Lieferung ABC");
+        }
     }
 
     private AlertDialog.Builder getDialog (String message)

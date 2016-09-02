@@ -24,6 +24,7 @@ import java.util.Calendar;
  */
 public class LogFragment extends Fragment
 {
+    public static final String LOG_FRAGMENT_ARGUMENT_TEXT = "LOG";
     private TextView logText;
     private MainActivity activity;
 
@@ -73,8 +74,8 @@ public class LogFragment extends Fragment
 
     private void initText()
     {
-        ArrayList<String> texts = getArguments().getStringArrayList("LOG");
-        if (texts != null || !texts.isEmpty())
+        ArrayList<String> texts = getArguments().getStringArrayList(LOG_FRAGMENT_ARGUMENT_TEXT);
+        if (texts != null && !texts.isEmpty())
         {
             for (String text : texts)
             {
