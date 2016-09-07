@@ -43,8 +43,9 @@ public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
             LayoutInflater inflater = (LayoutInflater) this.activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.device_list_item, parent, false);
             holder = new ListItemViewHolder();
+            holder.productDimensions = (TextView) convertView.findViewById(R.id.device_product_dimen);
             holder.productID = (TextView) convertView.findViewById(R.id.device_category_product);
-            holder.productName = (TextView) convertView.findViewById(R.id.device_product_name);
+            holder.productReceiver = (TextView) convertView.findViewById(R.id.device_product_receiver);
             holder.productState = (TextView) convertView.findViewById(R.id.device_product_state);
             holder.bluetoothName = (TextView) convertView.findViewById(R.id.device_name);
             holder.bluetoothAddress = (TextView) convertView.findViewById(R.id.device_address);
@@ -64,11 +65,11 @@ public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
             switch (currentDevice.getProduct().getLoadStatus())
             {
                 case MainActivity.FALSE_LOADED_PRODUCT:
-                    stateText = "Falsch verladen";
+                    stateText = "Falsch";
                     drawable = this.activity.getResources().getDrawable(R.drawable.rounded_stroked_box_red);
                     break;
                 case MainActivity.RIGHT_LOADED_PRODUCT:
-                    stateText = "Richtig verladen";
+                    stateText = "Richtig";
                     drawable = this.activity.getResources().getDrawable(R.drawable.rounded_stroked_box_green);
                     break;
                 case MainActivity.MISSING_PRODUCT:
@@ -80,16 +81,14 @@ public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
                     drawable = this.activity.getResources().getDrawable(R.drawable.rounded_stroked_box_grey);
                     break;
                 default:
+                    drawable = this.activity.getResources().getDrawable(R.drawable.rounded_stroked_box);
                     break;
             }
             holder.deviceLayout.setBackground(drawable);
             holder.productID.setText("Ware - " + currentDevice.getProduct().getId());
             holder.productState.setText(stateText);
-            holder.productName.setText(currentDevice.getProduct().getName());
-        }
-        else
-        {
-            holder.productName.setText("wird ermittelt...");
+            holder.productReceiver.setText(currentDevice.getProduct().getRecipient());
+            holder.productDimensions.setText(currentDevice.getProduct().getDimensions());
         }
 
         //TODO reagieren auf das Drücken eines Elementes
@@ -150,8 +149,9 @@ public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
 
     static class ListItemViewHolder
     {
+        private TextView productDimensions;
         private TextView productID;
-        private TextView productName;
+        private TextView productReceiver;
         private TextView productState;
         private TextView bluetoothName;
         private TextView bluetoothAddress;

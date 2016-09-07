@@ -140,11 +140,6 @@ public class DevicesListFragment extends Fragment
             public void onClick(View v)
             {
                 ((MainActivity) getActivity()).sendData(deviceListAdapter.getItems());
-                ProgressFragment progressFragment = new ProgressFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Sende Daten...");
-                progressFragment.setArguments(bundle);
-                ((MainActivity) getActivity()).openFragment(progressFragment);
             }
         });
     }
@@ -161,11 +156,6 @@ public class DevicesListFragment extends Fragment
                 scanTwo.setTextColor(getResources().getColor(R.color.grey));
                 ((MainActivity) getActivity()).writeToLog("Scan 1 Button wurde gedrückt.");
                 isScanOneFinished = false;
-                ProgressFragment fragment = new ProgressFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Scanne nach Geräten...");
-                fragment.setArguments(bundle);
-                ((MainActivity) getActivity()).openFragment(fragment);
                 deviceListAdapter.clear();
                 deviceListAdapter.notifyDataSetChanged();
                 ((MainActivity) getActivity()).startBleScan();
@@ -214,13 +204,16 @@ public class DevicesListFragment extends Fragment
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
-            if (elevate)
+            if (buttonBar != null)
             {
-                buttonBar.setElevation(30);
-            }
-            else
-            {
-                buttonBar.setElevation(0);
+                if (elevate)
+                {
+                    buttonBar.setElevation(30);
+                }
+                else
+                {
+                    buttonBar.setElevation(0);
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ package com.bachelor.stwagene.bluecheck.Model;
 public class DeliveryProduct
 {
     private String name;
+    private String dimensions;
     private String description;
     private String id;
     private String addressor;
@@ -22,11 +23,12 @@ public class DeliveryProduct
         this.loadStatus = loadStatus;
     }
 
-    public DeliveryProduct(String name, int loadStatus, String id)
+    public DeliveryProduct(String recipient, String dimensions, int loadStatus, String id)
     {
         this.id = id;
-        this.name = name;
+        this.recipient = recipient;
         this.loadStatus = loadStatus;
+        this.dimensions = dimensions;
     }
 
     public String getName()
@@ -87,5 +89,15 @@ public class DeliveryProduct
     public void setLoadStatus(int loadStatus)
     {
         this.loadStatus = loadStatus;
+    }
+
+    public String getDimensions()
+    {
+        return dimensions;
+    }
+
+    public void setDimensions(String dimensions)
+    {
+        this.dimensions = dimensions;
     }
 }

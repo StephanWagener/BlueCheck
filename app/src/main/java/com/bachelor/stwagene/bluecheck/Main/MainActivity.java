@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity
     public static final int UNKNOWN_PRODUCT = 3;
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 2;
+    private static final int REQUEST_ENABLE_BLUETOOTH_INIT = 3;
     private ArrayList<String> logTexts = new ArrayList<>();
     private boolean isClose = false;
     private BluetoothAdapter mBluetoothAdapter;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity
         //TODO Informationen der Lieferung einarbeiten und anzeigen
         //TODO Status der Lieferung nach den Scans anzeigen (eine Art Zusammenfassung)
         //TODO sortieren der Liste
+        //TODO Conroller für die Gateway Funktionalität
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
 
@@ -95,6 +97,8 @@ public class MainActivity extends AppCompatActivity
         {
             requestLocationPermission();
         }
+
+        connectionInitiator = new ConnectionInitiator(this);
     }
 
     @Override
@@ -128,7 +132,7 @@ public class MainActivity extends AppCompatActivity
         {
             writeToLog("Bluetooth ist nicht aktiviert.");
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH_INIT);
         }
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
         {
@@ -144,12 +148,16 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == REQUEST_ENABLE_BLUETOOTH)
+        if (requestCode == REQUEST_ENABLE_BLUETOOTH || requestCode == REQUEST_ENABLE_BLUETOOTH_INIT)
         {
             if (resultCode == RESULT_OK)
             {
                 writeToLog("Bluetooth wurde aktiviert.");
                 Toast.makeText(getApplicationContext(), "Bluetooth wurde aktiviert.", Toast.LENGTH_SHORT).show();
+                if (requestCode == REQUEST_ENABLE_BLUETOOTH)
+                {
+                    startBleScan();
+                }
             }
             if (resultCode == RESULT_CANCELED)
             {
@@ -158,6 +166,14 @@ public class MainActivity extends AppCompatActivity
                 this.finish();
             }
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        //left empty because of a bug in API 11 and higher
+        //makes scanning ble devices after enabling bluetooth for Scan 1 possible
+        //see http://stackoverflow.com/questions/7469082/getting-exception-illegalstateexception-can-not-perform-this-action-after-onsa
     }
 
     @Override
@@ -183,17 +199,30 @@ public class MainActivity extends AppCompatActivity
         writeToLog(item.getName() + "(" + item.getAddress() + ") wurde ausgewählt.");
         if (item.getDevice() == null)
         {
-            Toast.makeText(getApplicationContext(), "Nur ein Dummy", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Nur ein Dummy", Toast.LENGTH_SHORT).show();
         }
         else
         {
             connectToDevice(item.getDevice());
-            ProgressFragment fragment = new ProgressFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, "Verbinde...");
-            fragment.setArguments(bundle);
-            openFragment(fragment);
+            newProgress("Verbinde...");
             handleConnectionTimeOut();
+        }
+    }
+
+    public void newProgress(final String text)
+    {
+        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
+        if (fragment == null)
+        {
+            ProgressFragment progressFragment = new ProgressFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString(ProgressFragment.PROGRESS_FRAGMENT_ARGUMENT_TEXT, text);
+            progressFragment.setArguments(bundle);
+            openFragment(progressFragment);
+        }
+        else
+        {
+            fragment.changeProgressText(text);
         }
     }
 
@@ -349,6 +378,8 @@ public class MainActivity extends AppCompatActivity
         }
         else
         {
+            setDeviceList(new ArrayList<BluetoothTag>());
+            newProgress("Scanne nach Geräten...");
             writeToLog("Scanne nach Geräten...");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
@@ -418,18 +449,9 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void changeProgressText(String s)
-    {
-        ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
-        if (fragment != null)
-        {
-            fragment.changeProgressText(s);
-        }
-    }
-
     private void stopBleScan(boolean isFinished)
     {
-        changeProgressText("Scannen abgeschlossen...");
+        newProgress("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
         updateDeviceListView(DeviceListViewOption.SET_SCAN_ONE_FINISHED, true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -441,20 +463,24 @@ public class MainActivity extends AppCompatActivity
         {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
-        if (isFinished && !isDeveloperMode())
+        ArrayList<BluetoothTag> tags = getDevicesList();
+        if (isFinished && !isDeveloperMode() && tags.size() > 0)
         {
-            sendData(getDevicesList());
-            changeProgressText("Sende Daten...");
+            sendData(tags);
+            newProgress("Sende Daten...");
         }
-        else if (isFinished && isDeveloperMode())
+        else if (isFinished && isDeveloperMode() || tags.size() == 0)
         {
             closeProgressFragment();
+            if (!isDeveloperMode())
+            {
+                Toast.makeText(getApplicationContext(), "Keine Geräte gefunden.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
     public void sendData(ArrayList<BluetoothTag> tags)
     {
-        connectionInitiator = new ConnectionInitiator(this);
         isSendingSuccessful = connectionInitiator.sendDevicesList(tags);
     }
 
@@ -505,7 +531,6 @@ public class MainActivity extends AppCompatActivity
 
     public void sendData(String deviceValue)
     {
-        connectionInitiator = new ConnectionInitiator(this);
         isSendingSuccessful = connectionInitiator.sendMeasurement(deviceValue);
     }
 
@@ -620,7 +645,7 @@ public class MainActivity extends AppCompatActivity
         return list;
     }
 
-    public ArrayList<String> getBluetoothAddresses(ArrayList<BluetoothTag> tags)
+    private ArrayList<String> getBluetoothAddresses(ArrayList<BluetoothTag> tags)
     {
         ArrayList<String> addresses = new ArrayList<>();
         for (BluetoothTag tag : tags)

@@ -1,9 +1,10 @@
 package com.bachelor.stwagene.bluecheck.Cloud;
 
 import android.os.AsyncTask;
-import android.widget.Toast;
+import android.util.Log;
 
-import com.bachelor.stwagene.bluecheck.Main.MainActivity;
+import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
+import com.bachelor.stwagene.bluecheck.Model.Delivery;
 import com.bachelor.stwagene.bluecheck.Model.DeviceValue;
 import com.bachelor.stwagene.bluecheck.Model.MeasurementValue;
 import com.bachelor.stwagene.bluecheck.Model.Source;
@@ -32,35 +33,30 @@ import javax.net.ssl.HttpsURLConnection;
  *
  * Created by stwagene on 04.05.2016.
  */
-public class TelekomCloudCommunicationAdapter extends AsyncTask implements ICloudCommunication
+public class CumulocityCloudCommunicationAdapter extends AsyncTask implements ICloudCommunication
 {
-    private final MainActivity activity;
     private String httpUser;
     private String httpPwd;
     private String httpHost;
 
-    //TODO auskommentierten Code entfernen und senden der Liste bzw Lieferung umsetzen
-    public TelekomCloudCommunicationAdapter(MainActivity activity)
-    {
-        this.activity = activity;
-    }
+    //TODO senden der Liste bzw Lieferung umsetzen
+    public CumulocityCloudCommunicationAdapter() {}
 
     @Override
     protected Object doInBackground(Object[] params)
     {
         init();
-        Map<String, String> response = null;
-        if (params.length == 1)
+        Delivery delivery = null;
+        if (params[0] instanceof Delivery)
         {
-            response = post(getMeasurementJsonString((String) params[1]));
+            //TODO noch umsetzen
+            delivery = new Delivery(new ArrayList<BluetoothTag>(), "DEF456");
         }
         else
         {
-            //TODO noch umsetzen
-            /*deviceIdList = (ArrayList<String>) params[1];
-            response = put(getPutJsonString());*/
+            post(getMeasurementJsonString((Double) params[0]));
         }
-        return response;
+        return delivery;
     }
 
     private void init()
@@ -71,26 +67,6 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
         this.httpHost = "https://asterix.ram.m2m.telekom.com/";
     }
 
-    @Override
-    protected void onPostExecute(Object o)
-    {
-        activity.writeToLog("Senden der Daten abgeschlossen. Gesendeter Wert: " + ((Map<String, String>)o).get("value"));
-        Toast.makeText(activity.getApplicationContext(), "Der Wert wurde gesendet.", Toast.LENGTH_SHORT).show();
-        /*
-        else
-        {
-            activity.writeToLog("Senden der Liste abgeschlossen. Gesendete Liste: " + deviceIdList.toString());
-            Toast.makeText(activity.getApplicationContext(), "Die Liste wurde gesendet.", Toast.LENGTH_SHORT).show();
-        }*/
-    }
-
-    /*private Map<String, String> put(String jSon)
-    {
-        String addURL = "inventory/managedObjects/4045668";
-        String type = "PUT";
-        return sendRestCall(type, jSon, addURL);
-    }*/
-
     private Map<String, String> post(String jSon)
     {
         String addURL = "measurement/measurements";
@@ -100,7 +76,7 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
 
     private Map<String, String> sendRestCall(String type, String jSon, String addURL)
     {
-        activity.writeToLog("Initialisieren des" + type + "-Befehls.");
+        Log.d(this.getClass().getSimpleName(), "Initialisieren des" + type + "-Befehls.");
         Map<String, String> credentialsMap = new HashMap<String, String>();
         // URL-Verbindung in die Cloud herstellen
         try
@@ -116,20 +92,20 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
 
             httpsCon = createHttpsCon(httpsCon, addURL);
             // Json String per REST absetzen
-            activity.writeToLog("HTTP-Verbindung hergestellt.");
+            Log.d(this.getClass().getSimpleName(),"HTTP-Verbindung hergestellt.");
             OutputStream out = httpsCon.getOutputStream();
 
             OutputStreamWriter osw = new OutputStreamWriter(out);
             osw.write(jSon);
             osw.flush();
-            activity.writeToLog(type + "-REST-Befehl wurde abgesetzt.");
+            Log.d(this.getClass().getSimpleName(), type + "-REST-Befehl wurde abgesetzt.");
             // R�ckgabe lesen und zur�ckgeben.
             // Bearbeiten des R�ckgabestrings
             credentialsMap = convertString(httpsCon);
 
             osw.close();
             httpsCon.disconnect();
-            activity.writeToLog("Response der Cloud: " + credentialsMap.toString());
+            Log.d(this.getClass().getSimpleName(), "Response der Cloud: " + credentialsMap.toString());
         }
         catch (IOException ex)
         {
@@ -150,12 +126,6 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
         String[] parts = addUrl.split("/");
         String type = "";
 
-        // Notwendig da sonst Error 406.
-        /*if (parts[parts.length - 2].equals("managedObjects"))
-        {
-            type = "managedObject";
-        }
-        else */
         if (parts[parts.length - 1].equals("measurements"))
         {
             type = "measurement";
@@ -206,12 +176,6 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
             }
             credentialsMap.put(key, value);
         }
-        /*
-        else
-        {
-            String key = "ID_LIST";
-            credentialsMap.put(key, line);
-        }*/
 
         return credentialsMap;
     }
@@ -222,27 +186,8 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
         return reader.readLine();
     }
 
-    /*private String getPutJsonString()
+    private String getMeasurementJsonString(double value)
     {
-        String sn = "blueTagIdList";
-        String type = "list";
-        StringBuilder list = new StringBuilder();
-        for (int i = 0; i < deviceIdList.size(); i++)
-        {
-            list.append("\"");
-            list.append(deviceIdList.get(i));
-            list.append("\"");
-            if (i != (deviceIdList.size()-1))
-            {
-                list.append(",");
-            }
-        }
-        return "{\"" + sn + "\":{\"" + type + "\":[" + list.toString() + "]}}";
-    }*/
-
-    private String getMeasurementJsonString(String valueOfDevice)
-    {
-        double value = Double.valueOf(valueOfDevice);
         MeasurementValue measurementValue = new MeasurementValue();
         DeviceValue deviceTemparature = new DeviceValue();
         ValueType tempType = new ValueType();
@@ -275,7 +220,7 @@ public class TelekomCloudCommunicationAdapter extends AsyncTask implements IClou
     }
 
     @Override
-    public void sendBlePackageList(ArrayList<String> addresses, String deliveryID)
+    public void sendBlePackageList(Delivery delivery)
     {
         //TODO implementieren
     }

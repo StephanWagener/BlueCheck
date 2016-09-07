@@ -23,10 +23,10 @@ public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
 {
     private MainActivity activity;
     private int state = 0;
-    private int temperatureCounter;
-    private int pressureCounter;
-    private int humidityCounter;
-    private int lightIntensityCounter;
+    private int temperatureCounter = 0;
+    private int pressureCounter = 0;
+    private int humidityCounter = 0;
+    private int lightIntensityCounter = 0;
     private boolean isTemperatureShown = false;
     private boolean isPressureShown = false;
     private boolean isHumidityShown = false;
@@ -35,15 +35,6 @@ public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
     public BluetoothTexasInstrumentsCallback(MainActivity mainActivity)
     {
         this.activity = mainActivity;
-        resetCounter();
-    }
-
-    private void resetCounter()
-    {
-        lightIntensityCounter = 0;
-        humidityCounter = 0;
-        pressureCounter = 0;
-        temperatureCounter = 0;
     }
 
     private void initNextService(BluetoothGatt gatt)
