@@ -32,7 +32,6 @@ public class DevicesListFragment extends Fragment
     private LinearLayout buttonBar;
     private Button scanTwo;
     private DevicesListAdapter deviceListAdapter;
-    private boolean isScanOneFinished = false;
     private ImageView backButton;
     private ActionBar actionBar;
     private TextView rssiPercentageTextView;
@@ -43,6 +42,10 @@ public class DevicesListFragment extends Fragment
     public void onResume()
     {
         setVisibility(rssiPercentageTextView, false);
+        if (((MainActivity) getActivity()).isScanOneFinished())
+        {
+            scanTwo.setTextColor(getResources().getColor(android.R.color.white));
+        }
         super.onResume();
     }
 
@@ -74,13 +77,6 @@ public class DevicesListFragment extends Fragment
     {
         deviceListAdapter.addAll(((MainActivity)getActivity()).getDevices());
         deviceListAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onStop()
-    {
-        ((MainActivity)getActivity()).setDevices(deviceListAdapter.getItems());
-        super.onStop();
     }
 
     private void initActionBar()
@@ -153,12 +149,12 @@ public class DevicesListFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                scanTwo.setTextColor(getResources().getColor(R.color.grey));
                 ((MainActivity) getActivity()).writeToLog("Scan 1 Button wurde gedrückt.");
-                isScanOneFinished = false;
+                ((MainActivity) getActivity()).setScanOneFinished(false);
                 deviceListAdapter.clear();
                 deviceListAdapter.notifyDataSetChanged();
                 ((MainActivity) getActivity()).startBleScan();
+                scanTwo.setTextColor(getResources().getColor(android.R.color.white));
             }
         });
 
@@ -167,7 +163,7 @@ public class DevicesListFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                if (isScanOneFinished)
+                if (((MainActivity) getActivity()).isScanOneFinished())
                 {
                     Toast.makeText(getActivity().getApplicationContext(), "Noch nicht verfügbar.", Toast.LENGTH_SHORT).show();
                 }
@@ -216,12 +212,6 @@ public class DevicesListFragment extends Fragment
                 }
             }
         }
-    }
-
-    public void setScanOneFinished()
-    {
-        isScanOneFinished = true;
-        scanTwo.setTextColor(getResources().getColor(android.R.color.white));
     }
 
     public ArrayList<BluetoothTag> getDevicesList()

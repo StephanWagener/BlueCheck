@@ -19,7 +19,6 @@ import java.util.ArrayList;
  */
 public class ConnectionInitiator
 {
-    private static final String MESSAGE_KEY = "DATA";
     private final MainActivity activity;
     private String measurementToSend = null;
     private ArrayList<BluetoothTag> tagsToSend = new ArrayList<>();
@@ -198,6 +197,8 @@ public class ConnectionInitiator
                     @Override
                     public void onClick(final DialogInterface dialogInterface, final int i)
                     {
+                        ConnectionInitiator.this.measurementToSend = null;
+                        ConnectionInitiator.this.tagsToSend = null;
                         Toast.makeText(activity, "Die Daten wurden nicht gesendet.", Toast.LENGTH_SHORT).show();
                     }
                 });

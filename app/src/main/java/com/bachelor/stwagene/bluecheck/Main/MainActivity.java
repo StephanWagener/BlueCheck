@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity
     private boolean isSendingSuccessful = true;
     private ConnectionInitiator connectionInitiator;
     private ArrayList<BluetoothTag> devices = new ArrayList<>();
+    private boolean isScanOneFinished = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -84,6 +85,8 @@ public class MainActivity extends AppCompatActivity
         //TODO Status der Lieferung nach den Scans anzeigen (eine Art Zusammenfassung)
         //TODO sortieren der Liste
         //TODO Conroller für die Gateway Funktionalität
+        //TODO Einstellungen öffnen verhindern wenn ein Progreess dialog offen ist
+        //TODO Liste der VAlues wird beim wechseln zwischen Entwickler und Kunde nicht geändert
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
 
@@ -453,7 +456,7 @@ public class MainActivity extends AppCompatActivity
     {
         newProgress("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
-        updateDeviceListView(DeviceListViewOption.SET_SCAN_ONE_FINISHED, true);
+        isScanOneFinished = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             bleScanner.stopScan(bleCallback);
@@ -594,9 +597,6 @@ public class MainActivity extends AppCompatActivity
                 case SEND_BUTTON_VISIBILITY:
                     fragment.setSendButtonVisibility(enable);
                     break;
-                case SET_SCAN_ONE_FINISHED:
-                    fragment.setScanOneFinished();
-                    break;
                 case BACK_BUTTON_VISIBILITY:
                     fragment.setBackButtonVisibility(enable);
                     break;
@@ -657,6 +657,7 @@ public class MainActivity extends AppCompatActivity
 
     private void addDevice(BluetoothTag bluetoothTag)
     {
+        this.devices.add(bluetoothTag);
         DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
         {
@@ -670,11 +671,6 @@ public class MainActivity extends AppCompatActivity
         return devices;
     }
 
-    public void setDevices(ArrayList<BluetoothTag> devices)
-    {
-        this.devices = devices;
-    }
-
     public void setDeviceList(ArrayList<BluetoothTag> devices)
     {
         DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
@@ -683,5 +679,15 @@ public class MainActivity extends AppCompatActivity
             fragment.refreshDeviceList(devices);
         }
         this.devices = devices;
+    }
+
+    public boolean isScanOneFinished()
+    {
+        return isScanOneFinished;
+    }
+
+    public void setScanOneFinished(boolean scanOneFinished)
+    {
+        isScanOneFinished = scanOneFinished;
     }
 }
