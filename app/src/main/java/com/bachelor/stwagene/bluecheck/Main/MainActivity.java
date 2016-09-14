@@ -29,7 +29,7 @@ import android.widget.Toast;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothMainCallback;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallback;
-import com.bachelor.stwagene.bluecheck.Cloud.ConnectionInitiator;
+import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionInitiator;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DevicesListFragment;
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity
     private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
     private boolean isDeveloperMode = true;
     private boolean isSendingSuccessful = true;
-    private ConnectionInitiator connectionInitiator;
+    private CloudConnectionInitiator cloudConnectionInitiator;
     private ArrayList<BluetoothTag> devices = new ArrayList<>();
     private boolean isScanOneFinished = false;
 
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity
             requestLocationPermission();
         }
 
-        connectionInitiator = new ConnectionInitiator(this);
+        cloudConnectionInitiator = new CloudConnectionInitiator(this);
     }
 
     @Override
@@ -484,7 +484,7 @@ public class MainActivity extends AppCompatActivity
 
     public void sendData(ArrayList<BluetoothTag> tags)
     {
-        isSendingSuccessful = connectionInitiator.sendDevicesList(tags);
+        isSendingSuccessful = cloudConnectionInitiator.sendDevicesList(tags);
     }
 
     public void closeProgressFragment()
@@ -527,14 +527,14 @@ public class MainActivity extends AppCompatActivity
     {
         if (!isSendingSuccessful)
         {
-            connectionInitiator.repeatSending();
+            cloudConnectionInitiator.repeatSending();
         }
         super.onResume();
     }
 
     public void sendData(String deviceValue)
     {
-        isSendingSuccessful = connectionInitiator.sendMeasurement(deviceValue);
+        isSendingSuccessful = cloudConnectionInitiator.sendMeasurement(deviceValue);
     }
 
     public void deleteLogText()

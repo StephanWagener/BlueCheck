@@ -17,13 +17,13 @@ import java.util.ArrayList;
 /**
  * Created by stwagene on 19.08.2016.
  */
-public class ConnectionInitiator
+public class CloudConnectionInitiator
 {
     private final MainActivity activity;
     private String measurementToSend = null;
     private ArrayList<BluetoothTag> tagsToSend = new ArrayList<>();
 
-    public ConnectionInitiator(MainActivity activity)
+    public CloudConnectionInitiator(MainActivity activity)
     {
         this.activity = activity;
     }
@@ -115,7 +115,7 @@ public class ConnectionInitiator
             else if (this.tagsToSend != null)
             {
                 adapter = CloudCommunicationFactory.getCloudAdapter(CloudCommunicationFactory.CloudAdapterType.MOCK);
-                adapter.sendBlePackageList(new Delivery(this.tagsToSend, "ABC123"));
+                adapter.sendDelivery(new Delivery(this.tagsToSend, "ABC123"));
             }
             checkAdapterState(adapter);
         }
@@ -197,8 +197,8 @@ public class ConnectionInitiator
                     @Override
                     public void onClick(final DialogInterface dialogInterface, final int i)
                     {
-                        ConnectionInitiator.this.measurementToSend = null;
-                        ConnectionInitiator.this.tagsToSend = null;
+                        CloudConnectionInitiator.this.measurementToSend = null;
+                        CloudConnectionInitiator.this.tagsToSend = null;
                         Toast.makeText(activity, "Die Daten wurden nicht gesendet.", Toast.LENGTH_SHORT).show();
                     }
                 });

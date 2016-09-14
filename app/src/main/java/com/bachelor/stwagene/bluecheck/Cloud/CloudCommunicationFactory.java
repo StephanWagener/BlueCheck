@@ -11,7 +11,7 @@ public class CloudCommunicationFactory
     {
         if(CloudAdapterType.MOCK.equals(type))
         {
-            return new CumulocityCloudMock();
+            return new CloudCommunicationMock();
         }
         else if (CloudAdapterType.CUMULOCITY.equals(type))
         {
@@ -20,7 +20,7 @@ public class CloudCommunicationFactory
         else
         {
             //TODO Exception feuern
-            return new CumulocityCloudMock();
+            return new CloudCommunicationMock();
         }
     }
 

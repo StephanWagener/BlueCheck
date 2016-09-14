@@ -9,5 +9,5 @@ public interface ICloudCommunication
 {
     void sendMeasurement(double value);
 
-    void sendBlePackageList(Delivery delivery);
+    void sendDelivery(Delivery delivery);
 }

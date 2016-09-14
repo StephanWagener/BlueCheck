@@ -220,7 +220,7 @@ public class CumulocityCloudCommunicationAdapter extends AsyncTask implements IC
     }
 
     @Override
-    public void sendBlePackageList(Delivery delivery)
+    public void sendDelivery(Delivery delivery)
     {
         //TODO implementieren
     }

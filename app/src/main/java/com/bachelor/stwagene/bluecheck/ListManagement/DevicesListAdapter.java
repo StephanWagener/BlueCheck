@@ -23,7 +23,6 @@ import java.util.ArrayList;
  */
 public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
 {
-    //TODO neue Informationen zur Ware anzeigen
     private final ArrayList<BluetoothTag> items;
     private final MainActivity activity;
 

@@ -11,9 +11,9 @@ import java.util.ArrayList;
 /**
  * Created by stwagene on 31.08.2016.
  */
-public class CumulocityCloudMock extends AsyncTask implements ICloudCommunication
+public class CloudCommunicationMock extends AsyncTask implements ICloudCommunication
 {
-    public CumulocityCloudMock(){}
+    public CloudCommunicationMock(){}
 
     @Override
     public void sendMeasurement(double value)
@@ -22,7 +22,7 @@ public class CumulocityCloudMock extends AsyncTask implements ICloudCommunicatio
     }
 
     @Override
-    public void sendBlePackageList(Delivery delivery)
+    public void sendDelivery(Delivery delivery)
     {
         this.execute(delivery);
     }
