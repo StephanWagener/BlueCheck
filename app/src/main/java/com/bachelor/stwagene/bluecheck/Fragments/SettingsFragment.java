@@ -8,8 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
@@ -22,6 +24,7 @@ public class SettingsFragment extends Fragment
 {
     private TextView valueChangedInterval;
     private LinearLayout developerLayout;
+    private CheckBox developerMode;
 
     public SettingsFragment () {}
 
@@ -42,7 +45,6 @@ public class SettingsFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).setShowUUIDInLog(showUUID.isChecked());
                 if (showUUID.isChecked())
                 {
                     showText.setChecked(false);
@@ -59,7 +61,6 @@ public class SettingsFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).setShowUUIDInLog(!showText.isChecked());
                 if (showText.isChecked())
                 {
                     showUUID.setChecked(false);
@@ -74,6 +75,7 @@ public class SettingsFragment extends Fragment
         valueChangedInterval = (TextView) view.findViewById(R.id.value_changed_interval_text);
         valueChangedInterval.setText(((MainActivity)getActivity()).getValueChangedInterval().getText());
 
+        //TODO handle chooser auswahl mit speichern Button
         Button changeShowValueChanged = (Button) view.findViewById(R.id.change_show_value_changed_interval);
         changeShowValueChanged.setOnClickListener(new View.OnClickListener()
         {
@@ -85,26 +87,83 @@ public class SettingsFragment extends Fragment
         });
 
         developerLayout = (LinearLayout) view.findViewById(R.id.developer_settings);
-        setDeveloperMode();
-
-        final CheckBox developerMode = (CheckBox) view.findViewById(R.id.change_developer_mode);
+        developerMode = (CheckBox) view.findViewById(R.id.change_developer_mode);
         developerMode.setChecked(((MainActivity)getActivity()).isDeveloperMode());
         developerMode.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                ((MainActivity)getActivity()).setDeveloperMode(developerMode.isChecked());
-                SettingsFragment fragment = (SettingsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(SettingsFragment.class.getSimpleName());
-                if (fragment != null)
-                {
-                    fragment.setDeveloperMode();
-                }
+                setDeveloperMode();
                 OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
                 if (optionsFragment != null)
                 {
                     optionsFragment.setDeveloperMode();
                 }
+            }
+        });
+        setDeveloperMode();
+
+        final EditText deliveryText = (EditText) view.findViewById(R.id.delivery_id_text);
+        deliveryText.setHint(((MainActivity) getActivity()).getDeliveryID());
+
+        Button save = (Button) view.findViewById(R.id.save_settings);
+        save.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                MainActivity act = ((MainActivity) getActivity());
+                boolean changed = false;
+
+                if (showUUID.isChecked() != act.isShowUUIDInLog())
+                {
+                    act.setShowUUIDInLog(showUUID.isChecked());
+                    changed = true;
+                }
+                if (developerMode.isChecked() != act.isDeveloperMode())
+                {
+                    act.setDeveloperMode(developerMode.isChecked());
+                    changed = true;
+                }
+                String text = deliveryText.getText().toString();
+                if (!text.equals(act.getDeliveryID()))
+                {
+                    if (text.equals("ABCD1234") || text.equals("7890VBNM"))
+                    {
+                        act.setDeliveryID(text);
+                        deliveryText.setHint(text);
+                        deliveryText.setText("");
+                        changed = true;
+                    }
+                    else if (!text.trim().isEmpty())
+                    {
+                        Toast.makeText(getActivity().getApplicationContext(), "Keine gültige Lieferungskennung.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                if (changed)
+                {
+                    Toast.makeText(getActivity().getApplicationContext(), "Erfolgreich gespeichert.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        Button reset = (Button) view.findViewById(R.id.reset_settings);
+        reset.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                showUUID.setChecked(true);
+                showText.setChecked(false);
+                developerMode.setChecked(true);
+                deliveryText.setHint("ABCD1234");
+                valueChangedInterval.setText("Jeder");
+                ((MainActivity) getActivity()).setShowUUIDInLog(showUUID.isChecked());
+                ((MainActivity) getActivity()).setDeveloperMode(developerMode.isChecked());
+                ((MainActivity) getActivity()).setDeliveryID(deliveryText.getText().toString());
+                ((MainActivity) getActivity()).setValueChangedInterval(new ChooserListItem(1, "Jeder"));
             }
         });
 
@@ -118,7 +177,7 @@ public class SettingsFragment extends Fragment
 
     public void setDeveloperMode()
     {
-        if (!((MainActivity) getActivity()).isDeveloperMode())
+        if (!developerMode.isChecked())
         {
             developerLayout.setVisibility(View.GONE);
         }

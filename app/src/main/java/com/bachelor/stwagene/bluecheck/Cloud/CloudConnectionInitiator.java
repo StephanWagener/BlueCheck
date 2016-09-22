@@ -9,10 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
-import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
 import com.bachelor.stwagene.bluecheck.Model.Delivery;
-
-import java.util.ArrayList;
 
 /**
  * Created by stwagene on 19.08.2016.
@@ -21,7 +18,7 @@ public class CloudConnectionInitiator
 {
     private final MainActivity activity;
     private String measurementToSend = null;
-    private ArrayList<BluetoothTag> tagsToSend = new ArrayList<>();
+    private Delivery deliveryToSend = null;
 
     public CloudConnectionInitiator(MainActivity activity)
     {
@@ -71,14 +68,14 @@ public class CloudConnectionInitiator
         return builder;
     }
 
-    public boolean sendDevicesList(final ArrayList<BluetoothTag> tags)
+    public boolean sendDelivery(final Delivery delivery)
     {
-        this.tagsToSend = tags;
+        this.deliveryToSend = delivery;
 
         boolean isSuccessful = send();
         if (isSuccessful)
         {
-            this.tagsToSend = null;
+            this.deliveryToSend = null;
         }
 
         return isSuccessful;
@@ -112,10 +109,10 @@ public class CloudConnectionInitiator
                 adapter = CloudCommunicationFactory.getCloudAdapter(CloudCommunicationFactory.CloudAdapterType.CUMULOCITY);
                 adapter.sendMeasurement(Double.parseDouble(this.measurementToSend));
             }
-            else if (this.tagsToSend != null)
+            else if (this.deliveryToSend != null)
             {
                 adapter = CloudCommunicationFactory.getCloudAdapter(CloudCommunicationFactory.CloudAdapterType.MOCK);
-                adapter.sendDelivery(new Delivery(this.tagsToSend, "ABC123"));
+                adapter.sendDelivery(this.deliveryToSend);
             }
             checkAdapterState(adapter);
         }
@@ -155,14 +152,6 @@ public class CloudConnectionInitiator
 
                 if (delivery != null)
                 {
-                    //TODO es sollte kein ändern der Liste notwendig sein
-                    ArrayList<BluetoothTag> devices = activity.getDevices();
-                    for (int i = 0; i < devices.size(); i++)
-                    {
-                        delivery.getPackages().get(i).setDevice(devices.get(i).getDevice());
-                        delivery.getPackages().get(i).setName(devices.get(i).getName());
-                        delivery.getPackages().get(i).setAddress(devices.get(i).getAddress());
-                    }
                     final Delivery finalDelivery = delivery;
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
@@ -198,7 +187,7 @@ public class CloudConnectionInitiator
                     public void onClick(final DialogInterface dialogInterface, final int i)
                     {
                         CloudConnectionInitiator.this.measurementToSend = null;
-                        CloudConnectionInitiator.this.tagsToSend = null;
+                        CloudConnectionInitiator.this.deliveryToSend = null;
                         Toast.makeText(activity, "Die Daten wurden nicht gesendet.", Toast.LENGTH_SHORT).show();
                     }
                 });

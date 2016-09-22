@@ -39,6 +39,7 @@ import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
 import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
+import com.bachelor.stwagene.bluecheck.Model.Delivery;
 import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
 
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity
     private CloudConnectionInitiator cloudConnectionInitiator;
     private ArrayList<BluetoothTag> devices = new ArrayList<>();
     private boolean isScanOneFinished = false;
+    private String deliveryID = "ABCD1234";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -198,11 +200,10 @@ public class MainActivity extends AppCompatActivity
 
     public void performDeviceListItemClick(BluetoothTag item)
     {
-        //TODO dummy handling entfernen
         writeToLog(item.getName() + "(" + item.getAddress() + ") wurde ausgewählt.");
         if (item.getDevice() == null)
         {
-            Toast.makeText(getApplicationContext(), "Nur ein Dummy", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Nicht in der Nähe.", Toast.LENGTH_SHORT).show();
         }
         else
         {
@@ -469,7 +470,7 @@ public class MainActivity extends AppCompatActivity
         ArrayList<BluetoothTag> tags = getDevicesList();
         if (isFinished && !isDeveloperMode() && tags.size() > 0)
         {
-            sendData(tags);
+            sendData(new Delivery(tags, deliveryID));
             newProgress("Sende Daten...");
         }
         else if (isFinished && isDeveloperMode() || tags.size() == 0)
@@ -482,9 +483,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void sendData(ArrayList<BluetoothTag> tags)
+    public void sendData(Delivery delivery)
     {
-        isSendingSuccessful = cloudConnectionInitiator.sendDevicesList(tags);
+        isSendingSuccessful = cloudConnectionInitiator.sendDelivery(delivery);
     }
 
     public void closeProgressFragment()
@@ -689,5 +690,15 @@ public class MainActivity extends AppCompatActivity
     public void setScanOneFinished(boolean scanOneFinished)
     {
         isScanOneFinished = scanOneFinished;
+    }
+
+    public String getDeliveryID()
+    {
+        return deliveryID;
+    }
+
+    public void setDeliveryID(String id)
+    {
+        deliveryID = id;
     }
 }

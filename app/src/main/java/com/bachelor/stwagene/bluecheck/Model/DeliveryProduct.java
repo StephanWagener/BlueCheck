@@ -11,7 +11,7 @@ public class DeliveryProduct
     private String id;
     private String addressor;
     private String recipient;
-    private int loadStatus;
+    private int loadStatus = -1;
 
     public DeliveryProduct(String id, String name, String description, String addressor, String recipient, int loadStatus)
     {
@@ -28,6 +28,13 @@ public class DeliveryProduct
         this.id = id;
         this.recipient = recipient;
         this.loadStatus = loadStatus;
+        this.dimensions = dimensions;
+    }
+
+    public DeliveryProduct(String recipient, String dimensions, String id)
+    {
+        this.id = id;
+        this.recipient = recipient;
         this.dimensions = dimensions;
     }
 

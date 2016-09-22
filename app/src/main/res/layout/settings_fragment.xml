@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:clickable="true"
               android:background="@android:color/white"
-              android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
     <ScrollView
+        android:layout_above="@+id/button_container"
         android:padding="10dp"
         android:scrollbarStyle="outsideOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:orientation="vertical"
@@ -118,9 +118,65 @@
                 android:layout_margin="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+            
+            <LinearLayout
+                android:weightSum="2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:text="Aktuelle Lieferung:"
+                    android:layout_weight="1"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"/>
+
+                <EditText
+                    android:id="@+id/delivery_id_text"
+                    android:layout_weight="1"
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 
     </ScrollView>
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/button_container"
+        android:layout_alignParentBottom="true"
+        android:weightSum="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+
+            android:background="@color/grey"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:id="@+id/reset_settings"
+            android:text="Zurücksetzen"
+            android:textAllCaps="false"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:layout_alignParentBottom="true"
+            android:background="@color/colorPrimary"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:id="@+id/save_settings"
+            android:text="Speichern"
+            android:textAllCaps="false"
+            style="@style/Base.Widget.AppCompat.Button.Borderless"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

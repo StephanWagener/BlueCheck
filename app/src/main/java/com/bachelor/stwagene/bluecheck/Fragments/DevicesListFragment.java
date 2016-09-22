@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.bachelor.stwagene.bluecheck.ListManagement.DevicesListAdapter;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
+import com.bachelor.stwagene.bluecheck.Model.Delivery;
 import com.bachelor.stwagene.bluecheck.R;
 
 import java.util.ArrayList;
@@ -135,7 +136,7 @@ public class DevicesListFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).sendData(deviceListAdapter.getItems());
+                ((MainActivity) getActivity()).sendData(new Delivery(getDevicesList(), ((MainActivity) getActivity()).getDeliveryID()));
             }
         });
     }
@@ -216,7 +217,13 @@ public class DevicesListFragment extends Fragment
 
     public ArrayList<BluetoothTag> getDevicesList()
     {
-        return deviceListAdapter.getItems();
+        //Seiteneffekte beim Senden der Daten, deswegen nicht direkt die Items des Adapter verwenden
+        ArrayList<BluetoothTag> tags = new ArrayList<BluetoothTag>();
+        for (BluetoothTag tag : deviceListAdapter.getItems())
+        {
+            tags.add(tag);
+        }
+        return tags;
     }
 
     public void addDevice(BluetoothTag bluetoothTag)
