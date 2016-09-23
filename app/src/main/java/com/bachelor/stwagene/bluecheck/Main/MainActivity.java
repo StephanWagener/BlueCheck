@@ -4,7 +4,6 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -208,8 +207,6 @@ public class MainActivity extends AppCompatActivity
         else
         {
             connectToDevice(item.getDevice());
-            newProgress("Verbinde...");
-            handleConnectionTimeOut();
         }
     }
 
@@ -250,17 +247,24 @@ public class MainActivity extends AppCompatActivity
 
     public void connectToDevice(BluetoothDevice device)
     {
-        writeToLog("Starte Verbindung zu " + device.getName());
-        BluetoothGattCallback callback;
         if (device.getName().contains("SensorTag"))
         {
-            callback = new BluetoothTexasInstrumentsCallback(this);
+            writeToLog("Starte Verbindung zu " + device.getName());
+            mGatt = device.connectGatt(this, false, new BluetoothTexasInstrumentsCallback(this));
+            newProgress("Verbinde...");
+            handleConnectionTimeOut();
+        }
+        else if (isDeveloperMode())
+        {
+            writeToLog("Starte Verbindung zu " + device.getName());
+            mGatt = device.connectGatt(this, false, new BluetoothMainCallback(this));
+            newProgress("Verbinde...");
+            handleConnectionTimeOut();
         }
         else
         {
-            callback = new BluetoothMainCallback(this);
+            Toast.makeText(getApplicationContext(), "Gerät unbekannt. Kein auslesen möglich.", Toast.LENGTH_SHORT).show();
         }
-        mGatt = device.connectGatt(this, false, callback);
     }
 
     public void openFragment(Fragment fragment)
@@ -467,19 +471,15 @@ public class MainActivity extends AppCompatActivity
         {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
-        ArrayList<BluetoothTag> tags = getDevicesList();
-        if (isFinished && !isDeveloperMode() && tags.size() > 0)
+
+        if (isFinished && !isDeveloperMode())
         {
-            sendData(new Delivery(tags, deliveryID));
+            sendData(new Delivery(getDevicesList(), deliveryID));
             newProgress("Sende Daten...");
         }
-        else if (isFinished && isDeveloperMode() || tags.size() == 0)
+        else if (isFinished && isDeveloperMode())
         {
             closeProgressFragment();
-            if (!isDeveloperMode())
-            {
-                Toast.makeText(getApplicationContext(), "Keine Geräte gefunden.", Toast.LENGTH_LONG).show();
-            }
         }
     }
 
