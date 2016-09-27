@@ -130,13 +130,13 @@ public class DevicesListFragment extends Fragment
     private void initSendButton(View view)
     {
         sendIdList = (Button) view.findViewById(R.id.send_id_list);
-        setVisibility(this.sendIdList, ((MainActivity) getActivity()).isDeveloperMode());
+        setVisibility(this.sendIdList, ((MainActivity) getActivity()).getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true));
         sendIdList.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).sendData(new Delivery(getDevicesList(), ((MainActivity) getActivity()).getDeliveryID()));
+                ((MainActivity) getActivity()).sendData(new Delivery(getDevicesList(), ((MainActivity) getActivity()).getSharedPreferences().getString(SettingsFragment.CURRENT_DELIVERY, "ABCD1234")));
             }
         });
     }

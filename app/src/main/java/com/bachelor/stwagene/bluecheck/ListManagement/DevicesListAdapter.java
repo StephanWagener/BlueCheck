@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
 import com.bachelor.stwagene.bluecheck.R;
@@ -129,7 +130,7 @@ public class DevicesListAdapter extends ArrayAdapter<BluetoothTag>
 
         holder.bluetoothName.setText(currentDevice.getName());
         holder.bluetoothAddress.setText(currentDevice.getAddress());
-        if (this.activity.isDeveloperMode())
+        if (activity.getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
             holder.deviceBluetoothLayout.setVisibility(View.VISIBLE);
         }

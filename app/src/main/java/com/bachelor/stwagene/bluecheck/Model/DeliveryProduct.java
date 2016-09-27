@@ -38,6 +38,8 @@ public class DeliveryProduct
         this.dimensions = dimensions;
     }
 
+    public DeliveryProduct () {}
+
     public String getName()
     {
         return name;

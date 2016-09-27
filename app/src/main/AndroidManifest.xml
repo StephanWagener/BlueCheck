@@ -2,6 +2,11 @@
 <manifest package="com.bachelor.stwagene.bluecheck"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- TODO muss entfernt werden, wenn das File für den Mock entnommen werden-->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <!-- muss entfernt werden, wenn das File für den Mock entnommen werden-->
+
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>

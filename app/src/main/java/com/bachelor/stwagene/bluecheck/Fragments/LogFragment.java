@@ -42,7 +42,7 @@ public class LogFragment extends Fragment
 
         initText();
 
-        if (!activity.isShowUUIDInLog())
+        if (!((MainActivity) getActivity()).getSharedPreferences().getBoolean(SettingsFragment.IS_SHOW_UUID, true))
         {
             convertLogText();
         }
@@ -90,7 +90,7 @@ public class LogFragment extends Fragment
 
     public void appendLogText(String text)
     {
-        if (activity.isShowUUIDInLog())
+        if (((MainActivity) getActivity()).getSharedPreferences().getBoolean(SettingsFragment.IS_SHOW_UUID, true))
         {
             this.logText.append(text + "\n");
         }

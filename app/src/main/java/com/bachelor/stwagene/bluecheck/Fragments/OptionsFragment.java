@@ -86,7 +86,7 @@ public class OptionsFragment extends Fragment
     {
         ArrayList<Option> optionsList = new ArrayList<>();
         optionsList.add(new Option("Einstellungen", R.drawable.ic_settings_black_36dp, OptionType.SETTINGS));
-        if (((MainActivity) getActivity()).isDeveloperMode())
+        if (((MainActivity) getActivity()).getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
             optionsList.add(new Option("Log-Ansicht", R.drawable.ic_description_black_36dp, OptionType.LOG));
         }

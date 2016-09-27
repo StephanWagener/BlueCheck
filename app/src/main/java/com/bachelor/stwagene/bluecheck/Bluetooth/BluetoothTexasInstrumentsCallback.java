@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 
+import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.TISensorTagData;
 import com.bachelor.stwagene.bluecheck.Model.TexasInstrumentsUtils;
@@ -206,7 +207,7 @@ public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
 
     private void setNextCounter(BluetoothGattCharacteristic characteristic)
     {
-        int selectedInterval = activity.getValueChangedInterval().getValue();
+        int selectedInterval = activity.getSharedPreferences().getInt(SettingsFragment.VALUE_CHANGED_INTERVAL, 1);
         String uuid = characteristic.getService().getUuid().toString();
         switch (uuid)
         {

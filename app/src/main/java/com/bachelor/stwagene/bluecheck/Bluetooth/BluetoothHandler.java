@@ -5,6 +5,7 @@ import android.os.Looper;
 
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 
 /**
@@ -30,7 +31,7 @@ public class BluetoothHandler extends Handler
             public void run()
             {
                 activity.closeProgressFragment();
-                if (activity.isDeveloperMode())
+                if (activity.getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
                 {
                     DeviceServicesListFragment deviceServiceFragment = (DeviceServicesListFragment) activity.getSupportFragmentManager().findFragmentByTag(DeviceServicesListFragment.class.getSimpleName());
                     if (deviceServiceFragment == null)

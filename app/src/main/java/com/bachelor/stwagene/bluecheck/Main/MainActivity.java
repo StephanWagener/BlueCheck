@@ -11,6 +11,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothMainCallback;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallback;
 import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionInitiator;
+import com.bachelor.stwagene.bluecheck.Fragments.ChooserFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DevicesListFragment;
@@ -37,7 +39,6 @@ import com.bachelor.stwagene.bluecheck.Fragments.OptionsFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.ProgressFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.SettingsFragment;
 import com.bachelor.stwagene.bluecheck.Model.BluetoothTag;
-import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
 import com.bachelor.stwagene.bluecheck.Model.Delivery;
 import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
@@ -68,14 +69,10 @@ public class MainActivity extends AppCompatActivity
     private BluetoothHandler handler = new BluetoothHandler(this);
     private BluetoothGatt mGatt;
     private boolean isBleScanning = false;
-    private boolean isShowUUIDInLog = true;
-    private ChooserListItem valueChangedInterval = new ChooserListItem(1, "Jeder");
-    private boolean isDeveloperMode = true;
     private boolean isSendingSuccessful = true;
     private CloudConnectionInitiator cloudConnectionInitiator;
     private ArrayList<BluetoothTag> devices = new ArrayList<>();
     private boolean isScanOneFinished = false;
-    private String deliveryID = "ABCD1234";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -86,8 +83,8 @@ public class MainActivity extends AppCompatActivity
         //TODO Status der Lieferung nach den Scans anzeigen (eine Art Zusammenfassung)
         //TODO sortieren der Liste
         //TODO Conroller für die Gateway Funktionalität
-        //TODO Einstellungen öffnen verhindern wenn ein Progreess dialog offen ist
-        //TODO Liste der VAlues wird beim wechseln zwischen Entwickler und Kunde nicht geändert
+        //TODO Einstellungen öffnen verhindern wenn ein Progressdialog offen ist
+        //TODO Liste der Values wird beim Wechseln zwischen Entwickler und Kunde nicht geändert
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
 
@@ -254,7 +251,7 @@ public class MainActivity extends AppCompatActivity
             newProgress("Verbinde...");
             handleConnectionTimeOut();
         }
-        else if (isDeveloperMode())
+        else if (getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
             writeToLog("Starte Verbindung zu " + device.getName());
             mGatt = device.connectGatt(this, false, new BluetoothMainCallback(this));
@@ -288,7 +285,10 @@ public class MainActivity extends AppCompatActivity
                 ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
                 ft.add(R.id.activity_layout, fragment, name);
             }
-            ft.addToBackStack(name);
+            if (!name.equals(ChooserFragment.class.getSimpleName()))
+            {
+                ft.addToBackStack(name);
+            }
             updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, true);
             isClose = false;
         }
@@ -472,12 +472,12 @@ public class MainActivity extends AppCompatActivity
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
         }
 
-        if (isFinished && !isDeveloperMode())
+        if (isFinished && !getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
-            sendData(new Delivery(getDevicesList(), deliveryID));
+            sendData(new Delivery(getDevicesList(), getSharedPreferences().getString(SettingsFragment.CURRENT_DELIVERY, "ABCD1234")));
             newProgress("Sende Daten...");
         }
-        else if (isFinished && isDeveloperMode())
+        else if (isFinished && getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
             closeProgressFragment();
         }
@@ -557,32 +557,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public boolean isShowUUIDInLog()
-    {
-        return isShowUUIDInLog;
-    }
-
-    public void setShowUUIDInLog(boolean showUUIDInLog)
-    {
-        isShowUUIDInLog = showUUIDInLog;
-    }
-
-    public void setValueChangedInterval(ChooserListItem valueChangedInterval)
-    {
-        SettingsFragment fragment = (SettingsFragment) getSupportFragmentManager().findFragmentByTag(SettingsFragment.class.getSimpleName());
-        if (fragment != null)
-        {
-            fragment.setValueChangedInterval(valueChangedInterval);
-        }
-        this.valueChangedInterval = valueChangedInterval;
-    }
-
-    public ChooserListItem getValueChangedInterval()
-    {
-        return valueChangedInterval;
-    }
-
-    private void updateDeviceListView(DeviceListViewOption option, boolean enable)
+    public void updateDeviceListView(DeviceListViewOption option, boolean enable)
     {
         DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
         if (fragment != null)
@@ -610,24 +585,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-    public boolean isDeveloperMode()
-    {
-        return isDeveloperMode;
-    }
-
     public void setBackButtonGone()
     {
         if (getSupportFragmentManager().getBackStackEntryCount() <= 1)
         {
             updateDeviceListView(DeviceListViewOption.BACK_BUTTON_VISIBILITY, false);
         }
-    }
-
-    public void setDeveloperMode(boolean isActive)
-    {
-        this.isDeveloperMode = isActive;
-        updateDeviceListView(DeviceListViewOption.SEND_BUTTON_VISIBILITY, this.isDeveloperMode);
     }
 
     public BluetoothHandler getHandler()
@@ -692,13 +655,8 @@ public class MainActivity extends AppCompatActivity
         isScanOneFinished = scanOneFinished;
     }
 
-    public String getDeliveryID()
+    public SharedPreferences getSharedPreferences()
     {
-        return deliveryID;
-    }
-
-    public void setDeliveryID(String id)
-    {
-        deliveryID = id;
+        return this.getSharedPreferences("com.bachelor.BlueCheck.Settings", Context.MODE_PRIVATE);
     }
 }

@@ -11,6 +11,8 @@ public class Delivery
     //TODO List verwenden
     private ArrayList<BluetoothTag> packages;
 
+    public Delivery () {}
+
     public Delivery (ArrayList<BluetoothTag> packages, String id)
     {
         this.packages = packages;

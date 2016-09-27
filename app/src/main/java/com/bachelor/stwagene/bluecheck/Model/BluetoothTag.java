@@ -3,7 +3,7 @@ package com.bachelor.stwagene.bluecheck.Model;
 import android.bluetooth.BluetoothDevice;
 
 /**
- * Model to saved and manage the data of found Bluetooth devices.
+ * Model to save and manage the data of found Bluetooth devices.
  *
  * Created by stwagene on 02.05.2016.
  */
@@ -34,6 +34,8 @@ public class BluetoothTag
         this.address = address;
         this.name = name;
     }
+
+    public BluetoothTag () {}
 
     public String getName()
     {

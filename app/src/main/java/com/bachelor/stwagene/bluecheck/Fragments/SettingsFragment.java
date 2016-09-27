@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
+import com.bachelor.stwagene.bluecheck.Model.ChooserListOption;
+import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
 
 /**
@@ -22,9 +24,20 @@ import com.bachelor.stwagene.bluecheck.R;
  */
 public class SettingsFragment extends Fragment
 {
+    public static final String IS_DEVELOPER_MODE = "developer_mode_key";
+    public static final String VALUE_CHANGED_INTERVAL = "value_changed_interval";
+    public static final String IS_SHOW_UUID = "shown_log_text";
+    public static final String CURRENT_DELIVERY = "current_delivery";
+
     private TextView valueChangedInterval;
     private LinearLayout developerLayout;
     private CheckBox developerMode;
+    private TextView deliveryText;
+
+    private ChooserListItem valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERYONE);
+    private boolean isDeveloperMode = true;
+    private boolean isShowUUID = true;
+    private String currentDelivery = "";
 
     public SettingsFragment () {}
 
@@ -34,11 +47,13 @@ public class SettingsFragment extends Fragment
     {
         View view = inflater.inflate(R.layout.settings_fragment, container, false);
 
+        initSettings();
+
         final CheckBox showUUID = (CheckBox) view.findViewById(R.id.show_UUID);
         final CheckBox showText = (CheckBox) view.findViewById(R.id.show_text);
 
-        showUUID.setChecked(((MainActivity)getActivity()).isShowUUIDInLog());
-        showText.setChecked(!((MainActivity)getActivity()).isShowUUIDInLog());
+        showUUID.setChecked(isShowUUID);
+        showText.setChecked(!isShowUUID);
 
         showUUID.setOnClickListener(new View.OnClickListener()
         {
@@ -73,9 +88,8 @@ public class SettingsFragment extends Fragment
         });
 
         valueChangedInterval = (TextView) view.findViewById(R.id.value_changed_interval_text);
-        valueChangedInterval.setText(((MainActivity)getActivity()).getValueChangedInterval().getText());
+        valueChangedInterval.setText(valueChangedIntervalItem.getText());
 
-        //TODO handle chooser auswahl mit speichern Button
         Button changeShowValueChanged = (Button) view.findViewById(R.id.change_show_value_changed_interval);
         changeShowValueChanged.setOnClickListener(new View.OnClickListener()
         {
@@ -88,24 +102,19 @@ public class SettingsFragment extends Fragment
 
         developerLayout = (LinearLayout) view.findViewById(R.id.developer_settings);
         developerMode = (CheckBox) view.findViewById(R.id.change_developer_mode);
-        developerMode.setChecked(((MainActivity)getActivity()).isDeveloperMode());
+        developerMode.setChecked(isDeveloperMode);
         developerMode.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                setDeveloperMode();
-                OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
-                if (optionsFragment != null)
-                {
-                    optionsFragment.setDeveloperMode();
-                }
+                hideDeveloperSettings();
             }
         });
-        setDeveloperMode();
+        hideDeveloperSettings();
 
-        final EditText deliveryText = (EditText) view.findViewById(R.id.delivery_id_text);
-        deliveryText.setHint(((MainActivity) getActivity()).getDeliveryID());
+        deliveryText = (EditText) view.findViewById(R.id.delivery_id_text);
+        deliveryText.setHint(currentDelivery);
 
         Button save = (Button) view.findViewById(R.id.save_settings);
         save.setOnClickListener(new View.OnClickListener()
@@ -113,27 +122,32 @@ public class SettingsFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                MainActivity act = ((MainActivity) getActivity());
                 boolean changed = false;
 
-                if (showUUID.isChecked() != act.isShowUUIDInLog())
+                if (showUUID.isChecked() != isShowUUID)
                 {
-                    act.setShowUUIDInLog(showUUID.isChecked());
+                    setShowUuid(showUUID.isChecked());
                     changed = true;
                 }
-                if (developerMode.isChecked() != act.isDeveloperMode())
+
+                if (developerMode.isChecked() != isDeveloperMode)
                 {
-                    act.setDeveloperMode(developerMode.isChecked());
+                    setDeveloperMode(developerMode.isChecked());
                     changed = true;
                 }
+
+                if (valueChangedIntervalItem.getValue() != ((MainActivity) getActivity()).getSharedPreferences().getInt(VALUE_CHANGED_INTERVAL, 1))
+                {
+                    ((MainActivity) getActivity()).getSharedPreferences().edit().putInt(VALUE_CHANGED_INTERVAL, valueChangedIntervalItem.getValue()).apply();
+                    changed = true;
+                }
+
                 String text = deliveryText.getText().toString();
-                if (!text.equals(act.getDeliveryID()))
+                if (!text.equals(currentDelivery))
                 {
                     if (text.equals("ABCD1234") || text.equals("7890VBNM"))
                     {
-                        act.setDeliveryID(text);
-                        deliveryText.setHint(text);
-                        deliveryText.setText("");
+                        setCurrentDelivery(text);
                         changed = true;
                     }
                     else if (!text.trim().isEmpty())
@@ -156,14 +170,15 @@ public class SettingsFragment extends Fragment
             public void onClick(View v)
             {
                 showUUID.setChecked(true);
+                isShowUUID = true;
                 showText.setChecked(false);
                 developerMode.setChecked(true);
+                isDeveloperMode = true;
                 deliveryText.setHint("ABCD1234");
-                valueChangedInterval.setText("Jeder");
-                ((MainActivity) getActivity()).setShowUUIDInLog(showUUID.isChecked());
-                ((MainActivity) getActivity()).setDeveloperMode(developerMode.isChecked());
-                ((MainActivity) getActivity()).setDeliveryID(deliveryText.getText().toString());
-                ((MainActivity) getActivity()).setValueChangedInterval(new ChooserListItem(1, "Jeder"));
+                currentDelivery = "ABCD1234";
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERYONE);
+                valueChangedInterval.setText(valueChangedIntervalItem.getText());
+                resetSettings();
             }
         });
 
@@ -173,9 +188,10 @@ public class SettingsFragment extends Fragment
     public void setValueChangedInterval(ChooserListItem item)
     {
         valueChangedInterval.setText(item.getText());
+        valueChangedIntervalItem = item;
     }
 
-    public void setDeveloperMode()
+    public void hideDeveloperSettings()
     {
         if (!developerMode.isChecked())
         {
@@ -185,5 +201,73 @@ public class SettingsFragment extends Fragment
         {
             developerLayout.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void initSettings()
+    {
+        isDeveloperMode = ((MainActivity) getActivity()).getSharedPreferences().getBoolean(IS_DEVELOPER_MODE, true);
+        isShowUUID = ((MainActivity) getActivity()).getSharedPreferences().getBoolean(IS_SHOW_UUID, true);
+        setValueChangedInterval(((MainActivity) getActivity()).getSharedPreferences().getInt(VALUE_CHANGED_INTERVAL, 1));
+        currentDelivery = ((MainActivity) getActivity()).getSharedPreferences().getString(CURRENT_DELIVERY, "ABCD1234");
+    }
+
+    private void resetSettings()
+    {
+        setDeveloperMode(true);
+        setValueChangedInterval(1);
+        setCurrentDelivery("ABCD1234");
+        setShowUuid(true);
+    }
+
+    private void setDeveloperMode(boolean enable)
+    {
+        isDeveloperMode = enable;
+        ((MainActivity) getActivity()).getSharedPreferences().edit().putBoolean(IS_DEVELOPER_MODE, isDeveloperMode).apply();
+        ((MainActivity) getActivity()).updateDeviceListView(DeviceListViewOption.SEND_BUTTON_VISIBILITY, isDeveloperMode);
+        OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
+        if (optionsFragment != null)
+        {
+            optionsFragment.setDeveloperMode();
+        }
+        hideDeveloperSettings();
+    }
+
+    private void setShowUuid(boolean enable)
+    {
+        isShowUUID = enable;
+        ((MainActivity) getActivity()).getSharedPreferences().edit().putBoolean(IS_SHOW_UUID, isShowUUID).apply();
+    }
+
+    private void setValueChangedInterval(int value)
+    {
+        switch (value)
+        {
+            case 0:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.ONLY_ONCE);
+                break;
+            case 1:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERYONE);
+                break;
+            case 5:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERY_FIFTH);
+                break;
+            case 10:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERY_TENTH);
+                break;
+            case 30:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERY_THIRTIETH);
+                break;
+            case 60:
+                valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERY_SIXTIETH);
+                break;
+        }
+    }
+
+    private void setCurrentDelivery(String delivery)
+    {
+        currentDelivery = delivery;
+        deliveryText.setHint(currentDelivery);
+        deliveryText.setText("");
+        ((MainActivity) getActivity()).getSharedPreferences().edit().putString(CURRENT_DELIVERY, currentDelivery).apply();
     }
 }
