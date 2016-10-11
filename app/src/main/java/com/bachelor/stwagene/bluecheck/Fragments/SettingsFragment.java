@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListItem;
 import com.bachelor.stwagene.bluecheck.Model.ChooserListOption;
-import com.bachelor.stwagene.bluecheck.Model.DeviceListViewOption;
 import com.bachelor.stwagene.bluecheck.R;
 
 /**
@@ -223,7 +222,6 @@ public class SettingsFragment extends Fragment
     {
         isDeveloperMode = enable;
         ((MainActivity) getActivity()).getSharedPreferences().edit().putBoolean(IS_DEVELOPER_MODE, isDeveloperMode).apply();
-        ((MainActivity) getActivity()).updateDeviceListView(DeviceListViewOption.SEND_BUTTON_VISIBILITY, isDeveloperMode);
         OptionsFragment optionsFragment = (OptionsFragment) getActivity().getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
         if (optionsFragment != null)
         {

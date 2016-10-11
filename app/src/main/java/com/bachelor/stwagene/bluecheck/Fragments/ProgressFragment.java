@@ -3,13 +3,11 @@ package com.bachelor.stwagene.bluecheck.Fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.R;
 
 /**
@@ -56,14 +54,5 @@ public class ProgressFragment extends Fragment
         {
             this.progressText.setText(text);
         }
-    }
-
-    public void close()
-    {
-        FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-        ft.remove(this);
-        ft.commit();
-        getActivity().getSupportFragmentManager().popBackStack();
-        ((MainActivity) getActivity()).setBackButtonGone();
     }
 }

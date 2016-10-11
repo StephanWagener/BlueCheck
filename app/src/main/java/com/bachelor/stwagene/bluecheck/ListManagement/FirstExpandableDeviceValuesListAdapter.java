@@ -165,7 +165,7 @@ public class FirstExpandableDeviceValuesListAdapter extends BaseExpandableListAd
         return view;
     }
 
-    static class FirstLevelViewHolder
+    private static class FirstLevelViewHolder
     {
         private TextView nameTextView;
         private TextView UUIDTextView;

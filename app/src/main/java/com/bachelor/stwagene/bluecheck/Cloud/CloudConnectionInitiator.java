@@ -5,9 +5,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
+import com.bachelor.stwagene.bluecheck.Fragments.DeliveryResultFragment;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.Model.Delivery;
 
@@ -124,6 +127,8 @@ public class CloudConnectionInitiator
         return isConnected;
     }
 
+    private static Handler handler = new Handler(Looper.getMainLooper());
+
     private void checkAdapterState(final ICloudCommunication adapter)
     {
         new Thread(new Runnable()
@@ -153,8 +158,11 @@ public class CloudConnectionInitiator
                 if (delivery != null)
                 {
                     final Delivery finalDelivery = delivery;
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
+                    handler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
                             activity.setDeviceList(finalDelivery.getPackages());
                         }
                     });
@@ -170,6 +178,7 @@ public class CloudConnectionInitiator
                 activity.runOnUiThread(new Runnable() {
                     public void run() {
                         activity.closeProgressFragment();
+                        activity.openFragment(new DeliveryResultFragment());
                     }
                 });
             }

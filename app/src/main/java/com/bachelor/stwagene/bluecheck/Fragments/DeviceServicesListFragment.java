@@ -33,4 +33,11 @@ public class DeviceServicesListFragment extends Fragment
 
         return view;
     }
+
+    @Override
+    public void onDestroy()
+    {
+        ((MainActivity) getActivity()).setRssiPercentageVisible(false);
+        super.onDestroy();
+    }
 }
