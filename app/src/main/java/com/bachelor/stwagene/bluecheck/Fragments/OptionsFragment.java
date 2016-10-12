@@ -1,15 +1,16 @@
 package com.bachelor.stwagene.bluecheck.Fragments;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.bachelor.stwagene.bluecheck.ListManagement.OptionsListAdapter;
 import com.bachelor.stwagene.bluecheck.Main.MainActivity;
@@ -63,8 +64,7 @@ public class OptionsFragment extends Fragment
                 }
                 else
                 {
-                    //TODO Zurücksetzen implementieren
-                    Toast.makeText(getActivity().getApplicationContext(), "Noch nicht verfügbar!", Toast.LENGTH_SHORT).show();
+                    getDialog().show();
                 }
             }
         });
@@ -100,5 +100,31 @@ public class OptionsFragment extends Fragment
         adapter.clear();
         adapter.addAll(getOptionsList());
         adapter.notifyDataSetChanged();
+    }
+
+    private AlertDialog.Builder getDialog ()
+    {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Soll die Applikation wirklich in den Anfangszustand zurückgesetzt werden?");
+        builder.setPositiveButton("Zurücksetzen",
+                new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        ((MainActivity) getActivity()).reset();
+                    }
+                });
+        builder.setNegativeButton("Abbrechen",
+                new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(final DialogInterface dialogInterface, final int i)
+                    {
+                        getActivity().onBackPressed();
+                    }
+                });
+        builder.create();
+        return builder;
     }
 }

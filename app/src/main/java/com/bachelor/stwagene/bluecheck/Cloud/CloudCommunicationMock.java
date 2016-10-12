@@ -35,7 +35,7 @@ public class CloudCommunicationMock extends AsyncTask implements ICloudCommunica
         {
             //erste Lieferung initialisieren
             ArrayList<BluetoothTag> tags1 = new ArrayList<>();
-            BluetoothTag tag1 = new BluetoothTag("CC2650 SensorTag", "B0:B4:48:BD:AF:85");
+            BluetoothTag tag1 = new BluetoothTag("CC2650 SensorTag", "B0:B4:49:BD:AF:85");
             tag1.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "12kg, 17cm", "1213HVFH"));
             tags1.add(tag1);
 
@@ -54,22 +54,46 @@ public class CloudCommunicationMock extends AsyncTask implements ICloudCommunica
 
             //zweite Lieferung initialisieren
             ArrayList<BluetoothTag> tags2 = new ArrayList<>();
-            BluetoothTag tag5 = new BluetoothTag("Tag 1", "FF:FF:EE:FF:EE:FF");
-            tag5.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "4kg, 30cm", "234DFXSX"));
+            BluetoothTag tag5 = new BluetoothTag("Tag 5", "FF:FF:EE:FF:EE:FF");
+            tag5.setProduct(new DeliveryProduct("Paul Paulsen\nPaulstraße 76\n56789 Paulstadt", "4kg, 30cm", "234DFXSX"));
             tags2.add(tag5);
 
-            BluetoothTag tag6 = new BluetoothTag("Tag 2", "BB:AA:BB:AA:CC:FF");
-            tag6.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "24kg, 84cm", "2345DFGF"));
+            BluetoothTag tag6 = new BluetoothTag("Tag 6", "BB:AA:BB:AA:CC:FF");
+            tag6.setProduct(new DeliveryProduct("Paul Paulsen\nPaulstraße 76\n56789 Paulstadt", "24kg, 84cm", "2345DFGF"));
             tags2.add(tag6);
 
-            BluetoothTag tag7 = new BluetoothTag("Tag 3", "56:34:89:A1:CC:12");
-            tag7.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "2kg, 8cm", "6569OKOP"));
+            BluetoothTag tag7 = new BluetoothTag("Tag 7", "56:34:89:A1:CC:12");
+            tag7.setProduct(new DeliveryProduct("Paul Paulsen\nPaulstraße 76\n56789 Paulstadt", "2kg, 8cm", "6569OKOP"));
             tags2.add(tag7);
 
-            BluetoothTag tag8 = new BluetoothTag("Tag 4", "DD:C3:B4:A2:FF:A6");
-            tag8.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "32kg, 94cm", "5789BCXV"));
+            BluetoothTag tag8 = new BluetoothTag("Tag 8", "DD:C3:B4:A2:FF:A6");
+            tag8.setProduct(new DeliveryProduct("Paul Paulsen\nPaulstraße 76\n56789 Paulstadt", "32kg, 94cm", "5789BCXV"));
             tags2.add(tag8);
             deliveries.add(new Delivery(tags2, "7890VBNM"));
+
+            //dritte Lieferung initialisieren
+            ArrayList<BluetoothTag> tags3 = new ArrayList<>();
+            BluetoothTag tag9 = new BluetoothTag("Tag 9", "F0:F1:E2:F3:E4:F5");
+            tag9.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "18kg, 30cm", "JDBJ7678"));
+            tags3.add(tag9);
+
+            BluetoothTag tag10 = new BluetoothTag("Tag 10", "22:AA:BB:22:CC:22");
+            tag10.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "33kg, 99cm", "2555DHHF"));
+            tags3.add(tag10);
+
+            BluetoothTag tag11 = new BluetoothTag("Tag 12", "56:34:55:A1:55:12");
+            tag11.setProduct(new DeliveryProduct("Max Mustermann\nMusterstraße 21\n12345 Musterstadt", "8kg, 5cm", "6009BBNP"));
+            tags3.add(tag11);
+            deliveries.add(new Delivery(tags3, "QWER3456"));
+
+            //vierte Lieferung initialisieren
+            ArrayList<BluetoothTag> tags4 = new ArrayList<>();
+
+            BluetoothTag tag12 = new BluetoothTag("CC2650 SensorTag", "B0:B4:48:BD:AF:85");
+            tag12.setProduct(new DeliveryProduct("Felix Baum\nBaumstraße 21\n90340 Baumstadt", "50kg, 56cm", "2005DFZZ"));
+            tags4.add(tag12);
+
+            deliveries.add(new Delivery(tags4, "FGHJ6789"));
 
             ObjectMapper mapper = new ObjectMapper();
             try

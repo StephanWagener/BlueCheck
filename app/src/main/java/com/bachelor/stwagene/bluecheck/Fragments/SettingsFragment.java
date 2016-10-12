@@ -144,7 +144,7 @@ public class SettingsFragment extends Fragment
                 String text = deliveryText.getText().toString();
                 if (!text.equals(currentDelivery))
                 {
-                    if (text.equals("ABCD1234") || text.equals("7890VBNM"))
+                    if (((MainActivity) getActivity()).getCurrentDeliveries().contains(text))
                     {
                         setCurrentDelivery(text);
                         changed = true;
@@ -173,8 +173,6 @@ public class SettingsFragment extends Fragment
                 showText.setChecked(false);
                 developerMode.setChecked(true);
                 isDeveloperMode = true;
-                deliveryText.setHint("ABCD1234");
-                currentDelivery = "ABCD1234";
                 valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERYONE);
                 valueChangedInterval.setText(valueChangedIntervalItem.getText());
                 resetSettings();
@@ -207,14 +205,13 @@ public class SettingsFragment extends Fragment
         isDeveloperMode = ((MainActivity) getActivity()).getSharedPreferences().getBoolean(IS_DEVELOPER_MODE, true);
         isShowUUID = ((MainActivity) getActivity()).getSharedPreferences().getBoolean(IS_SHOW_UUID, true);
         setValueChangedInterval(((MainActivity) getActivity()).getSharedPreferences().getInt(VALUE_CHANGED_INTERVAL, 1));
-        currentDelivery = ((MainActivity) getActivity()).getSharedPreferences().getString(CURRENT_DELIVERY, "ABCD1234");
+        currentDelivery = ((MainActivity) getActivity()).getSharedPreferences().getString(CURRENT_DELIVERY, "");
     }
 
     private void resetSettings()
     {
         setDeveloperMode(true);
         setValueChangedInterval(1);
-        setCurrentDelivery("ABCD1234");
         setShowUuid(true);
     }
 

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bachelor.stwagene.bluecheck.Main.MainActivity;
 import com.bachelor.stwagene.bluecheck.R;
 
 /**
@@ -21,6 +22,7 @@ public class StartFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
+        ((MainActivity) getActivity()).setButtonBarVisibility(true);
         return inflater.inflate(R.layout.start_fragment, container, false);
     }
 }

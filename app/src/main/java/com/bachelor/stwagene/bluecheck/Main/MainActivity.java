@@ -38,6 +38,7 @@ import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallba
 import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionInitiator;
 import com.bachelor.stwagene.bluecheck.Fragments.ChooserFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeliveryResultFragment;
+import com.bachelor.stwagene.bluecheck.Fragments.DeliverySelectionFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceServicesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeviceValuesListFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DevicesListFragment;
@@ -117,7 +118,7 @@ public class MainActivity extends AppCompatActivity
 
         cloudConnectionInitiator = new CloudConnectionInitiator(this);
 
-        openFragment(new StartFragment());
+        openFragment(new DeliverySelectionFragment());
     }
 
     private void initActionBar()
@@ -379,7 +380,13 @@ public class MainActivity extends AppCompatActivity
     {
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         String name = fragment.getClass().getSimpleName();
-        if (name.equals(DeliveryResultFragment.class.getSimpleName()) || name.equals(StartFragment.class.getSimpleName()))
+        if (name.equals(DeliverySelectionFragment.class.getSimpleName()))
+        {
+            ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
+            ft.add(R.id.content_container, fragment, name);
+        }
+        else if (name.equals(DeliveryResultFragment.class.getSimpleName())
+                || name.equals(StartFragment.class.getSimpleName()))
         {
             ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
             ft.replace(R.id.content_container, fragment, name);
@@ -395,7 +402,7 @@ public class MainActivity extends AppCompatActivity
             {
                 ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left, R.anim.slide_in_right, R.anim.slide_out_right);
                 ft.replace(R.id.activity_layout, fragment, name);
-                this.buttonBar.setVisibility(View.GONE);
+                setButtonBarVisibility(false);
             }
             else
             {
@@ -412,15 +419,20 @@ public class MainActivity extends AppCompatActivity
 
         ft.commit();
 
-        if (name.equals(LogFragment.class.getSimpleName()))
+        if (name.equals(LogFragment.class.getSimpleName()) || name.equals(DeliverySelectionFragment.class.getSimpleName()))
         {
-            this.buttonBar.setVisibility(View.GONE);
+            setButtonBarVisibility(false);
         }
         if (name.equals(OptionsFragment.class.getSimpleName()) || name.equals(ProgressFragment.class.getSimpleName()))
         {
             setButtonBarElevation(false);
         }
         writeToLog(name + " wurde geöffnet.");
+    }
+
+    public void setButtonBarVisibility(boolean visible)
+    {
+        this.buttonBar.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     public void writeToLog(String text)
@@ -450,7 +462,7 @@ public class MainActivity extends AppCompatActivity
             {
                 MainActivity.this.finish();
             }
-            this.buttonBar.setVisibility(View.VISIBLE);
+            setButtonBarVisibility(true);
         }
         else
         {
@@ -465,7 +477,7 @@ public class MainActivity extends AppCompatActivity
                 {
                     mGatt.disconnect();
                 }
-                this.buttonBar.setVisibility(View.VISIBLE);
+                setButtonBarVisibility(true);
             }
             if (lastFragmentName.equals(OptionsFragment.class.getSimpleName()))
             {
@@ -482,7 +494,7 @@ public class MainActivity extends AppCompatActivity
             if (getSupportFragmentManager().getBackStackEntryCount() == 1)
             {
                 setBackButtonVisible(false);
-                this.buttonBar.setVisibility(View.VISIBLE);
+                setButtonBarVisibility(true);
                 super.onBackPressed();
             }
             if (getSupportFragmentManager().getBackStackEntryCount() > 1)
@@ -597,9 +609,20 @@ public class MainActivity extends AppCompatActivity
 
         if (isFinished)
         {
-            sendData(new Delivery(devices, getSharedPreferences().getString(SettingsFragment.CURRENT_DELIVERY, "ABCD1234")));
+            sendData(new Delivery(devices, getSharedPreferences().getString(SettingsFragment.CURRENT_DELIVERY, "")));
             newProgress("Sende Daten...");
         }
+    }
+
+    public ArrayList<String> getCurrentDeliveries()
+    {
+        //TODO Daten aus der Cloud verwenden
+        ArrayList<String> list = new ArrayList<>();
+        list.add("ABCD1234");
+        list.add("7890VBNM");
+        list.add("QWER3456");
+        list.add("FGHJ6789");
+        return list;
     }
 
     public void sendData(Delivery delivery)
@@ -765,5 +788,12 @@ public class MainActivity extends AppCompatActivity
     public void setBackButtonVisible(boolean backButtonVisible)
     {
         this.backButton.setVisibility(backButtonVisible ? View.VISIBLE : View.GONE);
+    }
+
+    public void reset()
+    {
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
     }
 }
