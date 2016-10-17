@@ -28,6 +28,8 @@ public class DevicesListFragment extends Fragment
     @Override
     public void onResume()
     {
+        ((MainActivity) getActivity()).setButtonBarVisibility(true);
+        ((MainActivity) getActivity()).setBackButtonVisible(true);
         refreshDeviceList(((MainActivity)getActivity()).getDevices());
         super.onResume();
     }

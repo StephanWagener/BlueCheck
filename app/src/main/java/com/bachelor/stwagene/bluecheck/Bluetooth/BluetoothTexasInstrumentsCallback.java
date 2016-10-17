@@ -32,6 +32,7 @@ public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
     private boolean isPressureShown = false;
     private boolean isHumidityShown = false;
     private boolean isLightIntensityShown = false;
+    private boolean isFragmentOpen = false;
 
     public BluetoothTexasInstrumentsCallback(MainActivity mainActivity)
     {
@@ -296,9 +297,10 @@ public class BluetoothTexasInstrumentsCallback extends BluetoothGattCallback
                 break;
         }
 
-        if (state == 3)
+        if (state == 3 && !isFragmentOpen)
         {
             activity.getHandler().openDeviceValuesList();
+            isFragmentOpen = true;
         }
         TISensorTagData.services = (ArrayList<BluetoothGattService>) gatt.getServices();
     }

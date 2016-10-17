@@ -132,7 +132,7 @@
                     android:layout_width="0dip"
                     android:layout_height="wrap_content"/>
 
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/delivery_id_text"
                     android:layout_weight="1"
                     android:layout_width="0dip"
@@ -152,7 +152,6 @@
         android:layout_height="wrap_content">
 
         <Button
-
             android:background="@color/grey"
             android:textSize="16sp"
             android:textColor="@android:color/white"

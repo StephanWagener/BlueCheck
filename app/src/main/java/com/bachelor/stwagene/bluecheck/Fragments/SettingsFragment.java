@@ -1,14 +1,18 @@
 package com.bachelor.stwagene.bluecheck.Fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,7 +35,7 @@ public class SettingsFragment extends Fragment
     private TextView valueChangedInterval;
     private LinearLayout developerLayout;
     private CheckBox developerMode;
-    private TextView deliveryText;
+    private AutoCompleteTextView delivery;
 
     private ChooserListItem valueChangedIntervalItem = new ChooserListItem(ChooserListOption.EVERYONE);
     private boolean isDeveloperMode = true;
@@ -112,8 +116,23 @@ public class SettingsFragment extends Fragment
         });
         hideDeveloperSettings();
 
-        deliveryText = (EditText) view.findViewById(R.id.delivery_id_text);
-        deliveryText.setHint(currentDelivery);
+        delivery = (AutoCompleteTextView) view.findViewById(R.id.delivery_id_text);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_dropdown_item_1line, ((MainActivity) getActivity()).getCurrentDeliveries());
+        delivery.setThreshold(1);
+        delivery.setAdapter(adapter);
+        delivery.setHint(currentDelivery);
+        delivery.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                View contextView = getActivity().getCurrentFocus();
+                if (contextView != null) {
+                    InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(contextView.getWindowToken(), 0);
+                }
+            }
+        });
 
         Button save = (Button) view.findViewById(R.id.save_settings);
         save.setOnClickListener(new View.OnClickListener()
@@ -141,7 +160,7 @@ public class SettingsFragment extends Fragment
                     changed = true;
                 }
 
-                String text = deliveryText.getText().toString();
+                String text = SettingsFragment.this.delivery.getText().toString();
                 if (!text.equals(currentDelivery))
                 {
                     if (((MainActivity) getActivity()).getCurrentDeliveries().contains(text))
@@ -261,8 +280,8 @@ public class SettingsFragment extends Fragment
     private void setCurrentDelivery(String delivery)
     {
         currentDelivery = delivery;
-        deliveryText.setHint(currentDelivery);
-        deliveryText.setText("");
+        this.delivery.setHint(currentDelivery);
+        this.delivery.setText("");
         ((MainActivity) getActivity()).getSharedPreferences().edit().putString(CURRENT_DELIVERY, currentDelivery).apply();
     }
 }

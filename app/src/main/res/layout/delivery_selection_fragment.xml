@@ -45,6 +45,7 @@
     </LinearLayout>
 
     <TextView
+        android:gravity="center"
         android:layout_above="@+id/delivery_save_button"
         android:padding="10dp"
         android:textColor="@android:color/darker_gray"

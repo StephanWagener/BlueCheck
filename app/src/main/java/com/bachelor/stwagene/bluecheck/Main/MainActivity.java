@@ -4,8 +4,8 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -32,9 +32,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothCallbackFactory;
 import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothHandler;
-import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothMainCallback;
-import com.bachelor.stwagene.bluecheck.Bluetooth.BluetoothTexasInstrumentsCallback;
 import com.bachelor.stwagene.bluecheck.Cloud.CloudConnectionInitiator;
 import com.bachelor.stwagene.bluecheck.Fragments.ChooserFragment;
 import com.bachelor.stwagene.bluecheck.Fragments.DeliveryResultFragment;
@@ -69,6 +68,7 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int REQUEST_PERMISSION_ACCESS_COARSE_LOCATION = 2;
     private static final int REQUEST_ENABLE_BLUETOOTH_INIT = 3;
+    private static final int REQUEST_PERMISSION_ACCESS_STORAGE = 4;
     private ArrayList<String> logTexts = new ArrayList<>();
     private boolean isClose = false;
     private BluetoothAdapter mBluetoothAdapter;
@@ -88,17 +88,16 @@ public class MainActivity extends AppCompatActivity
     private ImageView backButton;
     private ActionBar actionBar;
     private TextView rssiPercentageTextView;
+    private boolean isScanOne = true;
+    private boolean isCloseProgress = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         //TODO info button an dem Warenitem, um alle Informationen zu sehen
         //TODO String File für Texte anlegen
-        //TODO Informationen der Lieferung einarbeiten und anzeigen
-        //TODO Status der Lieferung nach den Scans anzeigen (eine Art Zusammenfassung)
         //TODO sortieren der Liste
         //TODO Conroller für die Gateway Funktionalität
-        //TODO Einstellungen öffnen verhindern wenn ein Progressdialog offen ist
         //TODO Liste der Values wird beim Wechseln zwischen Entwickler und Kunde nicht geändert
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_layout);
@@ -112,6 +111,7 @@ public class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         {
             requestLocationPermission();
+            requestStoragePermission();
         }
 
         initScanButtons();
@@ -154,16 +154,23 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v)
             {
                 writeToLog("Menü-Icon angeklickt.");
-                OptionsFragment fragment = (OptionsFragment) getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
-                if (fragment != null)
+                ProgressFragment progress = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
+                if (progress == null)
                 {
-                    onBackPressed();
+                    OptionsFragment fragment = (OptionsFragment) getSupportFragmentManager().findFragmentByTag(OptionsFragment.class.getSimpleName());
+                    if (fragment != null)
+                    {
+                        onBackPressed();
+                    }
+                    else
+                    {
+                        openFragment(new OptionsFragment());
+                    }
                 }
                 else
                 {
-                    openFragment(new OptionsFragment());
+                    Toast.makeText(getApplicationContext(), "Nicht während eines Scans!", Toast.LENGTH_SHORT).show();
                 }
-
             }
         });
 
@@ -184,6 +191,8 @@ public class MainActivity extends AppCompatActivity
             {
                 writeToLog("Scan 1 Button wurde gedrückt.");
                 isScanOneFinished = false;
+                isScanTwoFinished = false;
+                isScanOne = true;
                 DevicesListFragment fragment = (DevicesListFragment) getSupportFragmentManager().findFragmentByTag(DevicesListFragment.class.getSimpleName());
                 if (fragment != null)
                 {
@@ -203,12 +212,13 @@ public class MainActivity extends AppCompatActivity
             {
                 if (isScanOneFinished())
                 {
-                    isScanTwoFinished = true;
-                    Toast.makeText(getApplicationContext(), "Noch nicht verfügbar.", Toast.LENGTH_SHORT).show();
+                    isScanTwoFinished = false;
+                    isScanOne = false;
+                    startBleScan();
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(), "Scan 1 wurde noch nicht ausgeführt.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Zuerst Scan 1 susgeführen!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -228,6 +238,17 @@ public class MainActivity extends AppCompatActivity
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     REQUEST_PERMISSION_ACCESS_COARSE_LOCATION);
+        }
+    }
+
+    private void requestStoragePermission()
+    {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_PERMISSION_ACCESS_STORAGE);
         }
     }
 
@@ -304,6 +325,18 @@ public class MainActivity extends AppCompatActivity
                 finish();
             }
         }
+        if (requestCode == REQUEST_PERMISSION_ACCESS_STORAGE)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                Toast.makeText(this, "Zugriff auf Speicher erhalten.", Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                Toast.makeText(this, "Der Zugriff auf den Speicher ist essentiell.", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
     }
 
     public void performDeviceListItemClick(BluetoothTag item)
@@ -336,39 +369,24 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void handleConnectionTimeOut()
-    {
-        handler.postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-                List<BluetoothDevice> devices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
-                if (devices.size() == 0)
-                {
-                    closeProgressFragment();
-                    Toast.makeText(getApplicationContext(), "Verbindung unterbrochen.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, 5000);
-    }
-
     public void connectToDevice(BluetoothDevice device)
     {
+        BluetoothCallbackFactory.BluetoothCallbackType type = device.getName().contains("SensorTag")
+                                ? BluetoothCallbackFactory.BluetoothCallbackType.TEXAS_INSTRUMENTS
+                                : BluetoothCallbackFactory.BluetoothCallbackType.MAIN;
+        BluetoothGattCallback callback = BluetoothCallbackFactory.getBluetoothCallback(type, this);
+
         if (device.getName().contains("SensorTag"))
         {
             writeToLog("Starte Verbindung zu " + device.getName());
-            mGatt = device.connectGatt(this, false, new BluetoothTexasInstrumentsCallback(this));
+            mGatt = device.connectGatt(this, false, callback);
             newProgress("Verbinde...");
-            handleConnectionTimeOut();
         }
         else if (getSharedPreferences().getBoolean(SettingsFragment.IS_DEVELOPER_MODE, true))
         {
             writeToLog("Starte Verbindung zu " + device.getName());
-            mGatt = device.connectGatt(this, false, new BluetoothMainCallback(this));
+            mGatt = device.connectGatt(this, false, callback);
             newProgress("Verbinde...");
-            handleConnectionTimeOut();
         }
         else
         {
@@ -388,6 +406,7 @@ public class MainActivity extends AppCompatActivity
         else if (name.equals(DeliveryResultFragment.class.getSimpleName())
                 || name.equals(StartFragment.class.getSimpleName()))
         {
+            setRssiPercentageVisible(false);
             ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
             ft.replace(R.id.content_container, fragment, name);
         }
@@ -395,13 +414,15 @@ public class MainActivity extends AppCompatActivity
         {
             if (name.equals(DevicesListFragment.class.getSimpleName()))
             {
+                setRssiPercentageVisible(false);
+                setButtonBarVisibility(true);
                 ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left, R.anim.slide_in_right, R.anim.slide_out_right);
                 ft.add(R.id.content_container, fragment, name);
             }
             else if (name.equals(DeviceServicesListFragment.class.getSimpleName()) || name.equals(DeviceValuesListFragment.class.getSimpleName()))
             {
                 ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_left, R.anim.slide_in_right, R.anim.slide_out_right);
-                ft.replace(R.id.activity_layout, fragment, name);
+                ft.replace(R.id.content_container, fragment, name);
                 setButtonBarVisibility(false);
             }
             else
@@ -423,9 +444,13 @@ public class MainActivity extends AppCompatActivity
         {
             setButtonBarVisibility(false);
         }
-        if (name.equals(OptionsFragment.class.getSimpleName()) || name.equals(ProgressFragment.class.getSimpleName()))
+        if (name.equals(OptionsFragment.class.getSimpleName()))
         {
             setButtonBarElevation(false);
+        }
+        if (name.equals(ProgressFragment.class.getSimpleName()))
+        {
+            setButtonBarVisibility(false);
         }
         writeToLog(name + " wurde geöffnet.");
     }
@@ -473,9 +498,13 @@ public class MainActivity extends AppCompatActivity
                 {
                     stopBleScan(false);
                 }
-                else if (mGatt != null)
+                else if (mGatt != null && !isCloseProgress)
                 {
                     mGatt.disconnect();
+                }
+                if (isCloseProgress)
+                {
+                    isCloseProgress = false;
                 }
                 setButtonBarVisibility(true);
             }
@@ -588,15 +617,21 @@ public class MainActivity extends AppCompatActivity
                 }
             }, 5000);
         }
-
-
     }
 
     private void stopBleScan(boolean isFinished)
     {
         newProgress("Scannen abgeschlossen...");
         writeToLog("Scan 1 ist abgeschlossen.");
-        isScanOneFinished = isFinished;
+        if (isScanOne)
+        {
+            isScanOneFinished = isFinished;
+        }
+        else
+        {
+            isScanTwoFinished = isFinished;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             bleScanner.stopScan(bleCallback);
@@ -635,7 +670,10 @@ public class MainActivity extends AppCompatActivity
         ProgressFragment fragment = (ProgressFragment) getSupportFragmentManager().findFragmentByTag(ProgressFragment.class.getSimpleName());
         if (fragment != null)
         {
+            isCloseProgress = true;
             onBackPressed();
+            setRssiPercentageVisible(false);
+            setButtonBarVisibility(true);
             setButtonBarElevation(true);
         }
     }

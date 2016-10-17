@@ -25,11 +25,15 @@ import java.util.Iterator;
 
 public class DeliveryResultFragment extends Fragment
 {
+    private Button details;
+    private boolean isDetails = true;
+
     public DeliveryResultFragment() {}
 
     @Override
     public void onResume()
     {
+        ((MainActivity) getActivity()).setButtonBarVisibility(true);
         ((MainActivity) getActivity()).setBackButtonVisible(false);
         super.onResume();
     }
@@ -45,13 +49,20 @@ public class DeliveryResultFragment extends Fragment
         DeliveryResultListAdapter adapter = new DeliveryResultListAdapter((MainActivity) getActivity(), R.layout.delivery_result_packages_list_item, resultList);
         packagesList.setAdapter(adapter);
 
-        Button details = (Button) view.findViewById(R.id.details_button);
+        details = (Button) view.findViewById(R.id.details_button);
         details.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                ((MainActivity) getActivity()).openFragment(new DevicesListFragment());
+                if (isDetails)
+                {
+                    ((MainActivity) getActivity()).openFragment(new DevicesListFragment());
+                }
+                else
+                {
+                    ((MainActivity) getActivity()).openFragment(new EndFragment());
+                }
             }
         });
 
@@ -138,7 +149,7 @@ public class DeliveryResultFragment extends Fragment
 
         if (isMissing)
         {
-            resultText.setText("Bitte die fehlenden Pakete verladen und Scan 1 wiederholen.");
+            resultText.setText("Lieferung unvollständig. Bitte die fehlenden Pakete verladen und Scan 1 wiederholen.");
             resultText.setBackground(getActivity().getResources().getDrawable(R.drawable.rounded_red_box));
         }
         else
@@ -148,18 +159,20 @@ public class DeliveryResultFragment extends Fragment
             {
                 if (isRight && !isFalse)
                 {
-                    resultText.setText("Sie können den Transport beginnen.");
+                    resultText.setText("Lieferung vollständig. Sie können den Vorgang jetzt abschließen.");
+                    details.setText("Abschließen");
+                    isDetails = false;
                     resultText.setBackground(getActivity().getResources().getDrawable(R.drawable.rounded_green_box));
                 }
                 else if (isFalse)
                 {
-                    resultText.setText("Bitte die falschen Pakete ausladen und Scan 1 wiederholen.");
+                    resultText.setText("Lieferung unvollständig. Bitte die falschen Pakete ausladen und Scan 1 wiederholen.");
                     resultText.setBackground(getActivity().getResources().getDrawable(R.drawable.rounded_red_box));
                 }
             }
             else
             {
-                resultText.setText("Entfernen Sie sich vom Beladeort und starten Sie Scan 2.");
+                resultText.setText("Lieferung vollständig. Entfernen Sie sich vom Beladeort und starten Sie Scan 2.");
                 resultText.setBackground(getActivity().getResources().getDrawable(R.drawable.rounded_green_box));
             }
         }
